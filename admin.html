@@ -35,6 +35,18 @@
       margin-bottom: 2rem;
       font-size: 0.9rem;
     }
+    .badge-offline {
+      display: inline-block;
+      background: rgba(255, 165, 0, 0.15);
+      border: 1px solid rgba(255, 165, 0, 0.2);
+      color: #ffa500;
+      font-size: 0.7rem;
+      padding: 0.1rem 0.8rem;
+      border-radius: 20px;
+      margin-left: 0.8rem;
+      letter-spacing: 0.5px;
+      vertical-align: middle;
+    }
     .card {
       background: rgba(16, 24, 32, 0.4);
       border: 1px solid rgba(160, 175, 190, 0.08);
@@ -107,6 +119,11 @@
     .btn-primary:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 20px rgba(90, 176, 224, 0.2);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
     }
     .btn-danger {
       background: rgba(200, 60, 60, 0.2);
@@ -306,10 +323,13 @@
     </div>
   </div>
 
-  <!-- ===== 主内容（默认隐藏） ===== -->
+  <!-- ===== 主内容 ===== -->
   <div id="mainContent" style="display: none;">
     <div class="container">
-      <h1>⚙️ 建设世界 · 管理后台</h1>
+      <h1>
+        ⚙️ 建设世界 · 管理后台
+        <span class="badge-offline">⚡ 本地模式</span>
+      </h1>
       <div class="subtitle">管理服务器动态帖子 · 发帖 / 删帖</div>
 
       <div class="card">
@@ -363,8 +383,39 @@
     // ============================================================
     // 配置
     // ============================================================
-    const API_BASE = 'https://jssjapi.你的子域名.workers.dev';
     const ADMIN_KEY = 'jssjapi';
+
+    // ═══════════════════════════════════════════════════════════════
+    // 重要：部署后端后，把下面的 API_BASE 改成你的 Worker 地址
+    // 例如：'https://jssjapi.你的子域名.workers.dev'
+    // ═══════════════════════════════════════════════════════════════
+    const API_BASE = null; // null = 使用本地模式
+
+    // ============================================================
+    // 本地数据存储（localStorage 模拟数据库）
+    // ============================================================
+    function getLocalPosts() {
+      try {
+        const data = localStorage.getItem('jssj_posts');
+        if (data) {
+          return JSON.parse(data);
+        }
+      } catch (e) { /* ignore */ }
+      // 默认数据
+      return [{
+        id: '1',
+        title: '📌 欢迎来到建设世界',
+        author: '管理员',
+        date: '2026-07-02',
+        excerpt: '这里是服务器的官方动态区，会不定期发布更新公告、活动预告和玩家故事。',
+        content: '这里是服务器的官方动态区，会不定期发布更新公告、活动预告和玩家故事。',
+        pinned: true
+      }];
+    }
+
+    function saveLocalPosts(posts) {
+      localStorage.setItem('jssj_posts', JSON.stringify(posts));
+    }
 
     // ============================================================
     // 密码验证逻辑
@@ -378,14 +429,11 @@
     function tryLogin() {
       const inputPassword = authInput.value.trim();
       if (inputPassword === ADMIN_KEY) {
-        // 密码正确
         authOverlay.classList.add('hidden');
         mainContent.style.display = 'block';
         authError.textContent = '';
-        // 加载帖子
-        loadPosts();
-        // 保存到 localStorage，方便刷新时自动登录
-        localStorage.setItem('admin_key', ADMIN_KEY);
+        localStorage.setItem('admin_verified', 'true');
+        renderPosts();
       } else {
         authError.textContent = '❌ 密码错误，请重试';
         authInput.value = '';
@@ -393,24 +441,17 @@
       }
     }
 
-    // 回车键触发登录
     authInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        tryLogin();
-      }
+      if (e.key === 'Enter') tryLogin();
     });
-
     authBtn.addEventListener('click', tryLogin);
 
-    // 检查 localStorage 是否已有密码
-    const savedKey = localStorage.getItem('admin_key');
-    if (savedKey === ADMIN_KEY) {
-      // 自动登录
+    // 自动登录检查
+    if (localStorage.getItem('admin_verified') === 'true') {
       authOverlay.classList.add('hidden');
       mainContent.style.display = 'block';
-      loadPosts();
+      renderPosts();
     } else {
-      // 显示密码弹窗
       authOverlay.classList.remove('hidden');
       mainContent.style.display = 'none';
       authInput.focus();
@@ -430,47 +471,42 @@
     }
 
     // ============================================================
-    // 获取管理员密钥（用于 API 请求）
+    // 渲染帖子列表
     // ============================================================
-    function getAdminKey() {
-      return ADMIN_KEY;
-    }
+    function renderPosts() {
+      const container = document.getElementById('postList');
+      const posts = getLocalPosts();
 
-    // ============================================================
-    // 加载帖子列表
-    // ============================================================
-    async function loadPosts() {
-      try {
-        const resp = await fetch(API_BASE + '/api/posts');
-        const data = await resp.json();
-        const container = document.getElementById('postList');
+      // 排序：置顶优先，然后按日期倒序
+      const sorted = [...posts].sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return new Date(b.date) - new Date(a.date);
+      });
 
-        if (!data.success || !data.posts || data.posts.length === 0) {
-          container.innerHTML = '<div class="empty-state">📭 暂无动态</div>';
-          return;
-        }
-
-        container.innerHTML = data.posts.map(post => `
-          <div class="post-item">
-            <div class="info">
-              <span class="title">${post.title}</span>
-              ${post.pinned ? '<span class="pin-badge">置顶</span>' : ''}
-              <span class="meta">${post.author} · ${post.date}</span>
-            </div>
-            <div class="actions">
-              <button class="btn btn-danger" onclick="deletePost('${post.id}')">删除</button>
-            </div>
-          </div>
-        `).join('');
-      } catch (err) {
-        showToast('加载失败: ' + err.message, 'error');
+      if (sorted.length === 0) {
+        container.innerHTML = '<div class="empty-state">📭 暂无动态</div>';
+        return;
       }
+
+      container.innerHTML = sorted.map(post => `
+        <div class="post-item">
+          <div class="info">
+            <span class="title">${post.title}</span>
+            ${post.pinned ? '<span class="pin-badge">置顶</span>' : ''}
+            <span class="meta">${post.author} · ${post.date}</span>
+          </div>
+          <div class="actions">
+            <button class="btn btn-danger" onclick="deletePost('${post.id}')">删除</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     // ============================================================
     // 发布帖子
     // ============================================================
-    document.getElementById('postForm').addEventListener('submit', async (e) => {
+    document.getElementById('postForm').addEventListener('submit', (e) => {
       e.preventDefault();
 
       const title = document.getElementById('postTitle').value.trim();
@@ -484,57 +520,36 @@
         return;
       }
 
-      const key = getAdminKey();
+      const posts = getLocalPosts();
+      const newPost = {
+        id: Date.now().toString(),
+        title,
+        author,
+        excerpt: excerpt || content || '',
+        content: content || excerpt || '',
+        pinned: pinned || false,
+        date: new Date().toISOString().split('T')[0],
+      };
 
-      try {
-        const resp = await fetch(API_BASE + '/api/posts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + key,
-          },
-          body: JSON.stringify({ title, author, excerpt, content, pinned }),
-        });
+      posts.push(newPost);
+      saveLocalPosts(posts);
+      renderPosts();
 
-        const data = await resp.json();
-        if (data.success) {
-          showToast('✅ 帖子发布成功！');
-          document.getElementById('postForm').reset();
-          loadPosts();
-        } else {
-          showToast('❌ ' + (data.error || '发布失败'), 'error');
-        }
-      } catch (err) {
-        showToast('发布失败: ' + err.message, 'error');
-      }
+      showToast('✅ 帖子发布成功！（本地存储）');
+      document.getElementById('postForm').reset();
     });
 
     // ============================================================
     // 删除帖子
     // ============================================================
-    window.deletePost = async function(postId) {
+    window.deletePost = function(postId) {
       if (!confirm('确定要删除这篇帖子吗？')) return;
 
-      const key = getAdminKey();
-
-      try {
-        const resp = await fetch(API_BASE + '/api/posts/' + postId, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': 'Bearer ' + key,
-          },
-        });
-
-        const data = await resp.json();
-        if (data.success) {
-          showToast('✅ 帖子已删除');
-          loadPosts();
-        } else {
-          showToast('❌ ' + (data.error || '删除失败'), 'error');
-        }
-      } catch (err) {
-        showToast('删除失败: ' + err.message, 'error');
-      }
+      let posts = getLocalPosts();
+      posts = posts.filter(p => p.id !== postId);
+      saveLocalPosts(posts);
+      renderPosts();
+      showToast('✅ 帖子已删除');
     };
   </script>
 </body>
