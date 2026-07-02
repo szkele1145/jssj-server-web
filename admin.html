@@ -35,11 +35,11 @@
       margin-bottom: 2rem;
       font-size: 0.9rem;
     }
-    .badge-offline {
+    .badge-online {
       display: inline-block;
-      background: rgba(255, 165, 0, 0.15);
-      border: 1px solid rgba(255, 165, 0, 0.2);
-      color: #ffa500;
+      background: rgba(90, 176, 224, 0.15);
+      border: 1px solid rgba(90, 176, 224, 0.2);
+      color: #5ab0e0;
       font-size: 0.7rem;
       padding: 0.1rem 0.8rem;
       border-radius: 20px;
@@ -215,7 +215,6 @@
       border-color: rgba(200, 60, 60, 0.3);
     }
 
-    /* ===== 密码弹窗遮罩 ===== */
     #authOverlay {
       position: fixed;
       top: 0;
@@ -311,7 +310,6 @@
 </head>
 <body>
 
-  <!-- ===== 密码验证弹窗 ===== -->
   <div id="authOverlay">
     <div class="auth-box">
       <div class="lock-icon">🔐</div>
@@ -323,12 +321,11 @@
     </div>
   </div>
 
-  <!-- ===== 主内容 ===== -->
   <div id="mainContent" style="display: none;">
     <div class="container">
       <h1>
         ⚙️ 建设世界 · 管理后台
-        <span class="badge-offline">⚡ 本地模式</span>
+        <span class="badge-online">🌐 在线模式</span>
       </h1>
       <div class="subtitle">管理服务器动态帖子 · 发帖 / 删帖</div>
 
@@ -381,44 +378,12 @@
 
   <script>
     // ============================================================
-    // 配置
+    // 配置 - 前端不存密码！
     // ============================================================
-    const ADMIN_KEY = 'jssjapi';
-
-    // ═══════════════════════════════════════════════════════════════
-    // 重要：部署后端后，把下面的 API_BASE 改成你的 Worker 地址
-    // 例如：'https://jssjapi.你的子域名.workers.dev'
-    // ═══════════════════════════════════════════════════════════════
-    const API_BASE = null; // null = 使用本地模式
+    const API_BASE = 'https://api.jssj.cc.cd';
 
     // ============================================================
-    // 本地数据存储（localStorage 模拟数据库）
-    // ============================================================
-    function getLocalPosts() {
-      try {
-        const data = localStorage.getItem('jssj_posts');
-        if (data) {
-          return JSON.parse(data);
-        }
-      } catch (e) { /* ignore */ }
-      // 默认数据
-      return [{
-        id: '1',
-        title: '📌 欢迎来到建设世界',
-        author: '管理员',
-        date: '2026-07-02',
-        excerpt: '这里是服务器的官方动态区，会不定期发布更新公告、活动预告和玩家故事。',
-        content: '这里是服务器的官方动态区，会不定期发布更新公告、活动预告和玩家故事。',
-        pinned: true
-      }];
-    }
-
-    function saveLocalPosts(posts) {
-      localStorage.setItem('jssj_posts', JSON.stringify(posts));
-    }
-
-    // ============================================================
-    // 密码验证逻辑
+    // 密码验证 - 全部走后端
     // ============================================================
     const authOverlay = document.getElementById('authOverlay');
     const authInput = document.getElementById('authInput');
@@ -426,18 +391,48 @@
     const authError = document.getElementById('authError');
     const mainContent = document.getElementById('mainContent');
 
-    function tryLogin() {
-      const inputPassword = authInput.value.trim();
-      if (inputPassword === ADMIN_KEY) {
-        authOverlay.classList.add('hidden');
-        mainContent.style.display = 'block';
-        authError.textContent = '';
-        localStorage.setItem('admin_verified', 'true');
-        renderPosts();
-      } else {
-        authError.textContent = '❌ 密码错误，请重试';
-        authInput.value = '';
-        authInput.focus();
+    // 用于存储验证状态（只存是否通过，不存密码）
+    let isVerified = false;
+
+    async function tryLogin() {
+      const password = authInput.value.trim();
+      if (!password) {
+        authError.textContent = '请输入密码';
+        return;
+      }
+
+      authBtn.disabled = true;
+      authBtn.textContent = '验证中...';
+
+      try {
+        const resp = await fetch(API_BASE + '/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+
+        const data = await resp.json();
+
+        if (data.success) {
+          isVerified = true;
+          authOverlay.classList.add('hidden');
+          mainContent.style.display = 'block';
+          authError.textContent = '';
+          // 只存验证状态，不存密码
+          sessionStorage.setItem('admin_verified', 'true');
+          loadPosts();
+        } else {
+          authError.textContent = '❌ ' + (data.error || '密码错误，请重试');
+          authInput.value = '';
+          authInput.focus();
+          sessionStorage.removeItem('admin_verified');
+        }
+      } catch (err) {
+        authError.textContent = '❌ 连接服务器失败，请检查网络';
+        console.error(err);
+      } finally {
+        authBtn.disabled = false;
+        authBtn.textContent = '验证身份';
       }
     }
 
@@ -446,11 +441,12 @@
     });
     authBtn.addEventListener('click', tryLogin);
 
-    // 自动登录检查
-    if (localStorage.getItem('admin_verified') === 'true') {
+    // 检查 sessionStorage 验证状态（只存状态，不存密码）
+    if (sessionStorage.getItem('admin_verified') === 'true') {
+      isVerified = true;
       authOverlay.classList.add('hidden');
       mainContent.style.display = 'block';
-      renderPosts();
+      loadPosts();
     } else {
       authOverlay.classList.remove('hidden');
       mainContent.style.display = 'none';
@@ -471,42 +467,64 @@
     }
 
     // ============================================================
-    // 渲染帖子列表
+    // 获取当前验证状态
     // ============================================================
-    function renderPosts() {
-      const container = document.getElementById('postList');
-      const posts = getLocalPosts();
+    function getAuthToken() {
+      // 前端不存密码，只返回验证状态
+      // 发帖/删帖时，后端会校验 Authorization header
+      // 但因为我们不存密码，这里从 sessionStorage 读取验证状态
+      // 实际请求时，需要把密码再传给后端
+      // 更好的方式：登录时后端返回一个 token，前端存 token
+      // 简单起见：每次发帖/删帖时弹窗获取密码
+      return sessionStorage.getItem('admin_verified') === 'true';
+    }
 
-      // 排序：置顶优先，然后按日期倒序
-      const sorted = [...posts].sort((a, b) => {
-        if (a.pinned && !b.pinned) return -1;
-        if (!a.pinned && b.pinned) return 1;
-        return new Date(b.date) - new Date(a.date);
+    // ============================================================
+    // 获取密码（每次操作时弹窗获取）
+    // ============================================================
+    function promptPassword() {
+      return new Promise((resolve) => {
+        const pwd = prompt('请输入管理员密码以继续操作：');
+        resolve(pwd);
       });
+    }
 
-      if (sorted.length === 0) {
-        container.innerHTML = '<div class="empty-state">📭 暂无动态</div>';
-        return;
+    // ============================================================
+    // 加载帖子列表
+    // ============================================================
+    async function loadPosts() {
+      const container = document.getElementById('postList');
+      try {
+        const resp = await fetch(API_BASE + '/api/posts');
+        const data = await resp.json();
+
+        if (!data.success || !data.posts || data.posts.length === 0) {
+          container.innerHTML = '<div class="empty-state">📭 暂无动态</div>';
+          return;
+        }
+
+        container.innerHTML = data.posts.map(post => `
+          <div class="post-item">
+            <div class="info">
+              <span class="title">${post.title}</span>
+              ${post.pinned ? '<span class="pin-badge">置顶</span>' : ''}
+              <span class="meta">${post.author} · ${post.date}</span>
+            </div>
+            <div class="actions">
+              <button class="btn btn-danger" onclick="deletePost('${post.id}')">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="empty-state">❌ 加载失败</div>';
+        console.error(err);
       }
-
-      container.innerHTML = sorted.map(post => `
-        <div class="post-item">
-          <div class="info">
-            <span class="title">${post.title}</span>
-            ${post.pinned ? '<span class="pin-badge">置顶</span>' : ''}
-            <span class="meta">${post.author} · ${post.date}</span>
-          </div>
-          <div class="actions">
-            <button class="btn btn-danger" onclick="deletePost('${post.id}')">删除</button>
-          </div>
-        </div>
-      `).join('');
     }
 
     // ============================================================
     // 发布帖子
     // ============================================================
-    document.getElementById('postForm').addEventListener('submit', (e) => {
+    document.getElementById('postForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const title = document.getElementById('postTitle').value.trim();
@@ -520,36 +538,77 @@
         return;
       }
 
-      const posts = getLocalPosts();
-      const newPost = {
-        id: Date.now().toString(),
-        title,
-        author,
-        excerpt: excerpt || content || '',
-        content: content || excerpt || '',
-        pinned: pinned || false,
-        date: new Date().toISOString().split('T')[0],
-      };
+      // 每次发帖需要重新输入密码（安全）
+      const password = await promptPassword();
+      if (!password) {
+        showToast('已取消操作', 'error');
+        return;
+      }
 
-      posts.push(newPost);
-      saveLocalPosts(posts);
-      renderPosts();
+      try {
+        const resp = await fetch(API_BASE + '/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + password,
+          },
+          body: JSON.stringify({ title, author, excerpt, content, pinned }),
+        });
 
-      showToast('✅ 帖子发布成功！（本地存储）');
-      document.getElementById('postForm').reset();
+        const data = await resp.json();
+        if (data.success) {
+          showToast('✅ 帖子发布成功！');
+          document.getElementById('postForm').reset();
+          loadPosts();
+        } else {
+          showToast('❌ ' + (data.error || '发布失败'), 'error');
+          if (data.error === 'Unauthorized' || data.error.includes('密钥')) {
+            sessionStorage.removeItem('admin_verified');
+            // 重新弹出登录框
+            authOverlay.classList.remove('hidden');
+            mainContent.style.display = 'none';
+          }
+        }
+      } catch (err) {
+        showToast('发布失败: ' + err.message, 'error');
+      }
     });
 
     // ============================================================
     // 删除帖子
     // ============================================================
-    window.deletePost = function(postId) {
+    window.deletePost = async function(postId) {
       if (!confirm('确定要删除这篇帖子吗？')) return;
 
-      let posts = getLocalPosts();
-      posts = posts.filter(p => p.id !== postId);
-      saveLocalPosts(posts);
-      renderPosts();
-      showToast('✅ 帖子已删除');
+      const password = await promptPassword();
+      if (!password) {
+        showToast('已取消操作', 'error');
+        return;
+      }
+
+      try {
+        const resp = await fetch(API_BASE + '/api/posts/' + postId, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + password,
+          },
+        });
+
+        const data = await resp.json();
+        if (data.success) {
+          showToast('✅ 帖子已删除');
+          loadPosts();
+        } else {
+          showToast('❌ ' + (data.error || '删除失败'), 'error');
+          if (data.error === 'Unauthorized' || data.error.includes('密钥')) {
+            sessionStorage.removeItem('admin_verified');
+            authOverlay.classList.remove('hidden');
+            mainContent.style.display = 'none';
+          }
+        }
+      } catch (err) {
+        showToast('删除失败: ' + err.message, 'error');
+      }
     };
   </script>
 </body>
