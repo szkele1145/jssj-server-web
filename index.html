@@ -823,21 +823,20 @@
       color: #1a3a4e;
     }
 
+    .badge.bot {
+      border: 1px solid rgba(160, 175, 190, 0.15);
+      background: rgba(160, 175, 190, 0.06);
+      color: rgba(160, 175, 190, 0.5);
+    }
+
+    body.light-mode .badge.bot {
+      border-color: rgba(60, 100, 130, 0.15);
+      background: rgba(60, 100, 130, 0.06);
+      color: rgba(60, 100, 130, 0.45);
+    }
+
     .bot-section {
       min-width: 90px;
-    }
-
-    .bot-section .bot-label {
-      font-size: 1rem;
-      font-weight: 400;
-      color: rgba(160, 175, 190, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    body.light-mode .bot-section .bot-label {
-      color: rgba(60, 100, 130, 0.3);
     }
 
     .motd-display {
@@ -1173,10 +1172,9 @@
         motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
       }
 
-      const javaPlayers = data.players?.list || [];
-      const infoList = data.info || [];
-      const bedrockPlayers = infoList.filter(n => n.startsWith('.')).map(n => n.slice(1));
-      const botCount = infoList.filter(n => n === 'Anonymous Player').length;
+      const javaPlayers = data.players?.java || [];
+      const bedrockPlayers = data.players?.bedrock || [];
+      const botCount = data.players?.bots ?? 0;
 
       const now = new Date();
       const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
@@ -1206,7 +1204,7 @@
         if (botCount > 0) {
           cols += `<div class="player-section bot-section">
             <div class="section-label" style="margin-bottom:0;">
-              <span class="bot-label"><i class="fas fa-robot"></i> ${botCount}</span>
+              <span><span class="badge bot">Bot</span> ${botCount}</span>
             </div>
           </div>`;
         }
@@ -1260,18 +1258,23 @@
         try {
           const resp = await fetch('https://api.mcsrvstat.us/3/jssj.cc.cd');
           const data = await resp.json();
-          const fbList = data.players?.list || [];
-          const fbNames = fbList.length && typeof fbList[0] === 'object'
-            ? fbList.map(p => p.name) : fbList;
+          const rawList = data.players?.list || [];
+          const names = rawList.length && typeof rawList[0] === 'object'
+            ? rawList.map(p => p.name) : rawList;
+          const info = data.info?.clean || data.info?.raw || [];
           renderServerStatus({
             success: true,
             online: data.online || false,
             players: data.online && data.players ? {
               online: data.players.online ?? 0,
               max: data.players.max ?? 0,
-              list: fbNames,
-            } : { online: 0, max: 0, list: [] },
-            info: data.info?.clean || data.info?.raw || [],
+              java: names.filter(n => n && !n.startsWith('.')),
+              bedrock: [...new Set([
+                ...names.filter(n => n && n.startsWith('.')).map(n => n.slice(1)),
+                ...info.filter(n => n && n.startsWith('.')).map(n => n.slice(1)),
+              ])],
+              bots: info.filter(n => n === 'Anonymous Player').length,
+            } : { online: 0, max: 0, java: [], bedrock: [], bots: 0 },
             motd: data.motd || null,
           });
         } catch (fallbackErr) {
@@ -1293,11 +1296,10 @@
       try {
         const resp = await fetch(API_BASE + '/api/posts');
         const data = await resp.json();
-        if (data.success && data.posts) {
-          renderPosts(data.posts);
-        }
+        renderPosts(data.success ? data.posts : null);
       } catch (err) {
         console.warn('获取帖子失败:', err);
+        renderPosts(null);
       }
     }
 
