@@ -959,16 +959,7 @@
           <div class="forum-header">
             <h2><i class="fas fa-comment-dots"></i> 服务器动态</h2>
           </div>
-          <div id="forumPosts">
-            <div class="forum-post">
-              <div class="post-title">
-                📌 欢迎来到建设世界
-                <span class="pin-badge">置顶</span>
-              </div>
-              <div class="post-meta">管理员 · 2026-07-02</div>
-              <div class="post-excerpt">这里是服务器的官方动态区，会不定期发布更新公告、活动预告和玩家故事。</div>
-            </div>
-          </div>
+          <div id="forumPosts"></div>
         </div>
 
         <div id="underConstructionPage">
@@ -1126,6 +1117,80 @@
     // ============================================================
     let serverRefreshTimer = null;
 
+    function renderServerStatus(data) {
+      const container = document.getElementById('serverStatusContent');
+      const online = data.online;
+      const statusClass = online ? 'online' : 'offline';
+      const icon = online ? 'fa-check-circle' : 'fa-times-circle';
+      const label = online ? '在线' : '离线';
+
+      const playersOnline = online ? (data.players?.online ?? 0) : '-';
+      const playersMax = online ? (data.players?.max ?? '?') : '-';
+      const version = online ? (data.version ?? '未知') : '-';
+      const ipInfo = data.ip ? (data.port === 25565 ? data.ip : data.ip + ':' + data.port) : '-';
+
+      let motdHtml = '';
+      if (online && data.motd?.html?.length) {
+        motdHtml = data.motd.html.join('<br>');
+      } else if (online && data.motd?.clean?.length) {
+        motdHtml = data.motd.clean.join('<br>');
+      } else {
+        motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
+      }
+
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+
+      container.innerHTML = `
+        <div class="server-status-card">
+          <div class="status-badge ${statusClass}">
+            <span class="dot"></span>
+            <i class="fas ${icon}"></i>
+            ${label}
+          </div>
+
+          <div class="server-info-grid">
+            <div class="info-item">
+                <div class="label">服务器地址</div>
+                <div class="value copy-ip" onclick="copyIP('jssj.cc.cd')" title="点击复制">
+                  jssj.cc.cd <i class="fas fa-copy"></i>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">IP / 端口</div>
+                <div class="value">${ipInfo}</div>
+              </div>
+
+            <div class="info-item">
+              <div class="label">在线玩家</div>
+              <div class="value">${playersOnline} / ${playersMax}</div>
+            </div>
+
+            <div class="info-item">
+              <div class="label">游戏版本</div>
+              <div class="value">${version}</div>
+            </div>
+
+            <div class="info-item" style="grid-column:1/-1;">
+              <div class="label">MOTD</div>
+              <div class="motd-display">${motdHtml}</div>
+            </div>
+          </div>
+        </div>
+        <div class="server-updated">
+          <i class="fas fa-sync-alt"></i> 更新于 ${timeStr}
+          <button class="refresh-btn" onclick="fetchServerStatus()"><i class="fas fa-redo"></i> 刷新</button>
+        </div>
+      `;
+      scheduleRefresh();
+    }
+
+    function scheduleRefresh() {
+      if (serverRefreshTimer) clearTimeout(serverRefreshTimer);
+      serverRefreshTimer = setTimeout(fetchServerStatus, 30000);
+    }
+
     async function fetchServerStatus() {
       const container = document.getElementById('serverStatusContent');
 
@@ -1133,91 +1198,41 @@
         const resp = await fetch(API_BASE + '/api/mc-status');
         const data = await resp.json();
 
-        if (!data.success) {
+        if (data.success) {
+          renderServerStatus(data);
+        } else {
+          throw new Error(data.error || '获取失败');
+        }
+      } catch (err) {
+        console.warn('Worker 代理失败，尝试直连 mcsrvstat.us:', err);
+
+        // 降级：直接从浏览器调 mcsrvstat.us
+        try {
+          const resp = await fetch('https://api.mcsrvstat.us/2/jssj.cc.cd');
+          const data = await resp.json();
+          renderServerStatus({
+            success: true,
+            online: data.online || false,
+            ip: data.ip || null,
+            port: data.port || null,
+            hostname: data.hostname || null,
+            players: data.online ? {
+              online: data.players?.online ?? 0,
+              max: data.players?.max ?? 0
+            } : null,
+            version: data.version || null,
+            motd: data.motd || null,
+          });
+        } catch (fallbackErr) {
+          console.warn('直连也失败:', fallbackErr);
           container.innerHTML = `<div class="server-status-card" style="text-align:center;padding:3rem;">
             <i class="fas fa-exclamation-triangle" style="font-size:2rem;opacity:0.2;"></i>
             <div style="margin-top:1rem;opacity:0.3;">无法获取服务器状态</div>
+            <button class="refresh-btn" onclick="fetchServerStatus()" style="margin-top:0.8rem;">重试</button>
           </div>`;
-          return;
+          scheduleRefresh();
         }
-
-        const online = data.online;
-        const statusClass = online ? 'online' : 'offline';
-        const icon = online ? 'fa-check-circle' : 'fa-times-circle';
-        const label = online ? '在线' : '离线';
-
-        const playersOnline = online ? (data.players?.online ?? 0) : '-';
-        const playersMax = online ? (data.players?.max ?? '?') : '-';
-        const version = online ? (data.version ?? '未知') : '-';
-        const hostname = data.hostname || '-';
-        const ipPort = data.ip ? (data.port === 25565 ? data.ip : data.ip + ':' + data.port) : '-';
-
-        let motdHtml = '';
-        if (online && data.motd?.html?.length) {
-          motdHtml = data.motd.html.join('<br>');
-        } else if (online && data.motd?.clean?.length) {
-          motdHtml = data.motd.clean.join('<br>');
-        } else {
-          motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
-        }
-
-        const now = new Date();
-        const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
-
-        container.innerHTML = `
-          <div class="server-status-card">
-            <div class="status-badge ${statusClass}">
-              <span class="dot"></span>
-              <i class="fas ${icon}"></i>
-              ${label}
-            </div>
-
-            <div class="server-info-grid">
-              <div class="info-item">
-                <div class="label">服务器地址</div>
-                <div class="value copy-ip" onclick="copyIP('${ipPort}')" title="点击复制">
-                  ${ipPort} <i class="fas fa-copy"></i>
-                </div>
-              </div>
-
-              <div class="info-item">
-                <div class="label">主机名</div>
-                <div class="value">${hostname}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="label">在线玩家</div>
-                <div class="value">${playersOnline} / ${playersMax}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="label">游戏版本</div>
-                <div class="value">${version}</div>
-              </div>
-
-              <div class="info-item" style="grid-column:1/-1;">
-                <div class="label">MOTD</div>
-                <div class="motd-display">${motdHtml}</div>
-              </div>
-            </div>
-          </div>
-          <div class="server-updated">
-            <i class="fas fa-sync-alt"></i> 更新于 ${timeStr}
-            <button class="refresh-btn" onclick="fetchServerStatus()"><i class="fas fa-redo"></i> 刷新</button>
-          </div>
-        `;
-      } catch (err) {
-        console.warn('获取服务器状态失败:', err);
-        container.innerHTML = `<div class="server-status-card" style="text-align:center;padding:3rem;">
-          <i class="fas fa-exclamation-triangle" style="font-size:2rem;opacity:0.2;"></i>
-          <div style="margin-top:1rem;opacity:0.3;">请求失败，请检查网络</div>
-          <button class="refresh-btn" onclick="fetchServerStatus()" style="margin-top:0.8rem;opacity:0.4;">重试</button>
-        </div>`;
       }
-
-      // 30秒自动刷新
-      if (serverRefreshTimer) clearTimeout(serverRefreshTimer);
-      serverRefreshTimer = setTimeout(fetchServerStatus, 30000);
     }
 
     window.copyIP = function(ip) {
