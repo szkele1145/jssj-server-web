@@ -743,22 +743,41 @@
       color: #1a3a4e;
     }
 
-    .player-section {
-      margin-bottom: 1rem;
+    .player-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 0.8rem;
+      align-items: start;
     }
 
-    .player-section:last-of-type {
-      margin-bottom: 0;
+    @media (max-width: 700px) {
+      .player-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .player-section {
+      padding: 0.8rem 1rem;
+      background: rgba(200, 215, 230, 0.02);
+      border: 1px solid rgba(160, 175, 190, 0.04);
+      border-radius: 10px;
+      min-height: 2.5rem;
+    }
+
+    body.light-mode .player-section {
+      background: rgba(200, 215, 230, 0.04);
+      border-color: rgba(80, 120, 160, 0.04);
     }
 
     .player-section .section-label {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: rgba(160, 175, 190, 0.35);
       letter-spacing: 2px;
       margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     body.light-mode .player-section .section-label {
@@ -804,12 +823,51 @@
       color: #1a3a4e;
     }
 
+    .bot-section {
+      cursor: pointer;
+      user-select: none;
+      min-width: 90px;
+    }
+
+    .bot-section .bot-count-display {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: rgba(160, 175, 190, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    body.light-mode .bot-section .bot-count-display {
+      color: rgba(60, 100, 130, 0.4);
+    }
+
+    .bot-section .bot-count-display i {
+      font-size: 1rem;
+      transition: transform 0.2s;
+    }
+
+    .bot-section .bot-count-display i.rotated {
+      transform: rotate(180deg);
+    }
+
+    .bot-detail {
+      display: none;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+      color: rgba(160, 175, 190, 0.25);
+    }
+
+    .bot-section.open .bot-detail {
+      display: block;
+    }
+
     .motd-display {
       padding: 1rem 1.2rem;
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(160, 175, 190, 0.06);
       border-radius: 10px;
-      font-family: 'Courier New', monospace;
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
       font-size: 0.95rem;
       line-height: 1.6;
       text-align: center;
@@ -1137,44 +1195,49 @@
         motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
       }
 
-      // 分离 Java / 基岩版 / 机器人
       const javaPlayers = data.players?.list || [];
       const infoList = data.info || [];
       const bedrockPlayers = infoList.filter(n => n.startsWith('.')).map(n => n.slice(1));
       const botCount = infoList.filter(n => n === 'Anonymous Player').length;
 
-      let playersHtml = '';
-      if (!online) {
-        playersHtml = '<div style="opacity:0.3;text-align:center;padding:1rem 0;">服务器离线</div>';
-      } else if (javaPlayers.length === 0 && bedrockPlayers.length === 0) {
-        playersHtml = '<div style="opacity:0.3;text-align:center;padding:0.5rem 0;">暂无玩家在线</div>';
-      } else {
-        let sections = '';
-        if (javaPlayers.length > 0) {
-          sections += `
-            <div class="player-section">
-              <div class="section-label"><span class="badge java">Java</span> ${javaPlayers.length} 人</div>
-              <div class="player-list">${javaPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
-            </div>`;
-        }
-        if (bedrockPlayers.length > 0) {
-          sections += `
-            <div class="player-section">
-              <div class="section-label"><span class="badge bedrock">BE</span> ${bedrockPlayers.length} 人</div>
-              <div class="player-list">${bedrockPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
-            </div>`;
-        }
-        if (botCount > 0) {
-          sections += `
-            <div class="player-section">
-              <div class="section-label"><span style="opacity:0.4;"><i class="fas fa-robot"></i> 机器人</span> ${botCount}</div>
-            </div>`;
-        }
-        playersHtml = sections;
-      }
-
       const now = new Date();
       const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+
+      let bodyHtml = '';
+      if (!online) {
+        bodyHtml = '<div style="opacity:0.3;text-align:center;padding:2rem 0;">服务器离线</div>';
+      } else if (javaPlayers.length === 0 && bedrockPlayers.length === 0 && botCount === 0) {
+        bodyHtml = '<div style="opacity:0.3;text-align:center;padding:1.5rem 0;">暂无玩家在线</div>';
+      } else {
+        let cols = '';
+
+        // Java — 左
+        cols += `<div class="player-section">
+          <div class="section-label"><span class="badge java">Java</span> ${javaPlayers.length} 人</div>
+          <div class="player-list">${javaPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+        </div>`;
+
+        // 基岩版 — 中
+        cols += `<div class="player-section">
+          <div class="section-label"><span class="badge bedrock">BE</span> ${bedrockPlayers.length} 人</div>
+          <div class="player-list">${bedrockPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+        </div>`;
+
+        // 机器人 — 右（可展开）
+        cols += `<div class="player-section bot-section" onclick="toggleBots(this)">
+          <div class="section-label" style="margin-bottom:0;">
+            <span class="bot-count-display">
+              <i class="fas fa-robot"></i> ${botCount}
+              <i class="fas fa-chevron-down" style="font-size:0.65rem;opacity:0.4;"></i>
+            </span>
+          </div>
+          <div class="bot-detail">
+            ${botCount > 0 ? 'Anonymous Player × ' + botCount : '无'}
+          </div>
+        </div>`;
+
+        bodyHtml = `<div class="player-grid">${cols}</div>`;
+      }
 
       container.innerHTML = `
         <div class="server-status-card">
@@ -1186,7 +1249,7 @@
             <div class="online-count"><i class="fas fa-users" style="opacity:0.3;margin-right:6px;"></i> ${count} 人在线</div>
           </div>
 
-          ${playersHtml}
+          ${bodyHtml}
 
           <div class="motd-display">${motdHtml}</div>
         </div>
@@ -1197,6 +1260,14 @@
       `;
       scheduleRefresh();
     }
+
+    window.toggleBots = function(el) {
+      el.classList.toggle('open');
+      const detail = el.querySelector('.bot-detail');
+      const icon = el.querySelector('.fa-chevron-down');
+      if (detail) detail.classList.toggle('open');
+      if (icon) icon.classList.toggle('rotated');
+    };
 
     function scheduleRefresh() {
       if (serverRefreshTimer) clearTimeout(serverRefreshTimer);
