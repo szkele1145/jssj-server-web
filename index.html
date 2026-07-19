@@ -643,6 +643,214 @@
       color: #0a1a2a;
     }
 
+    /* ===== 服务器状态页面 ===== */
+    #serverPage {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    #serverPage.active {
+      display: flex;
+    }
+
+    .server-header {
+      padding-bottom: 1.2rem;
+      border-bottom: 1px solid rgba(160, 175, 190, 0.06);
+      margin-bottom: 1.8rem;
+    }
+
+    .server-header h2 {
+      font-size: 1.8rem;
+      font-weight: 400;
+      letter-spacing: 4px;
+      color: #b8d0dd;
+    }
+
+    .server-header h2 i {
+      color: #7bb3d9;
+      margin-right: 10px;
+    }
+
+    body.light-mode .server-header h2 {
+      color: #1f4a66;
+    }
+
+    .server-status-card {
+      background: rgba(16, 24, 32, 0.2);
+      border: 1px solid rgba(160, 175, 190, 0.04);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 1.2rem;
+      transition: 0.2s;
+    }
+
+    body.light-mode .server-status-card {
+      background: rgba(220, 235, 250, 0.12);
+      border-color: rgba(80, 120, 160, 0.04);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.4rem 1.2rem;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 400;
+      letter-spacing: 2px;
+      margin-bottom: 1.2rem;
+    }
+
+    .status-badge.online {
+      color: #5ad0a0;
+      border: 1px solid rgba(90, 208, 160, 0.2);
+      background: rgba(90, 208, 160, 0.08);
+    }
+
+    .status-badge.online i {
+      color: #5ad0a0;
+    }
+
+    .status-badge.offline {
+      color: #e06060;
+      border: 1px solid rgba(224, 96, 96, 0.2);
+      background: rgba(224, 96, 96, 0.08);
+    }
+
+    .status-badge.offline i {
+      color: #e06060;
+    }
+
+    .status-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-badge.online .dot {
+      background: #5ad0a0;
+      box-shadow: 0 0 8px rgba(90, 208, 160, 0.5);
+    }
+
+    .status-badge.offline .dot {
+      background: #e06060;
+      box-shadow: 0 0 8px rgba(224, 96, 96, 0.4);
+    }
+
+    .server-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      .server-info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .info-item {
+      padding: 0.8rem 1rem;
+      background: rgba(200, 215, 230, 0.02);
+      border: 1px solid rgba(160, 175, 190, 0.04);
+      border-radius: 10px;
+      transition: 0.2s;
+    }
+
+    body.light-mode .info-item {
+      background: rgba(200, 215, 230, 0.04);
+      border-color: rgba(80, 120, 160, 0.04);
+    }
+
+    .info-item .label {
+      font-size: 0.75rem;
+      color: rgba(160, 175, 190, 0.4);
+      letter-spacing: 2px;
+      margin-bottom: 0.3rem;
+      text-transform: uppercase;
+    }
+
+    body.light-mode .info-item .label {
+      color: rgba(60, 100, 130, 0.4);
+    }
+
+    .info-item .value {
+      font-size: 1.05rem;
+      color: #d0e6f0;
+      font-weight: 400;
+    }
+
+    body.light-mode .info-item .value {
+      color: #1a3a4e;
+    }
+
+    .info-item .value.copy-ip {
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .info-item .value.copy-ip:hover {
+      color: #7bb3d9;
+    }
+
+    .info-item .value.copy-ip i {
+      font-size: 0.8rem;
+      margin-left: 6px;
+      opacity: 0.4;
+    }
+
+    .motd-display {
+      grid-column: 1 / -1;
+      padding: 1rem 1.2rem;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(160, 175, 190, 0.06);
+      border-radius: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      text-align: center;
+      color: #c8dce6;
+    }
+
+    body.light-mode .motd-display {
+      background: rgba(0, 0, 0, 0.04);
+      color: #1a3a4e;
+      border-color: rgba(80, 120, 160, 0.06);
+    }
+
+    .server-updated {
+      text-align: right;
+      font-size: 0.75rem;
+      color: rgba(160, 175, 190, 0.2);
+      letter-spacing: 1px;
+      margin-top: 0.5rem;
+    }
+
+    body.light-mode .server-updated {
+      color: rgba(60, 100, 130, 0.2);
+    }
+
+    .refresh-btn {
+      background: transparent;
+      border: 1px solid rgba(160, 175, 190, 0.1);
+      color: rgba(160, 175, 190, 0.4);
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: inherit;
+      letter-spacing: 1px;
+      transition: 0.2s;
+      margin-left: 0.8rem;
+    }
+
+    .refresh-btn:hover {
+      border-color: #8ab8d0;
+      color: #8ab8d0;
+    }
+
     .footer-copy {
       margin-top: 1rem;
       text-align: center;
@@ -735,6 +943,18 @@
           </button>
         </div>
 
+        <div id="serverPage">
+          <div class="server-header">
+            <h2><i class="fas fa-server"></i> 服务器状态</h2>
+          </div>
+          <div id="serverStatusContent">
+            <div class="server-status-card" style="text-align:center;padding:3rem;">
+              <i class="fas fa-spinner fa-pulse" style="font-size:2rem;opacity:0.3;"></i>
+              <div style="margin-top:1rem;opacity:0.3;font-size:0.9rem;">获取中...</div>
+            </div>
+          </div>
+        </div>
+
         <div id="forumPage">
           <div class="forum-header">
             <h2><i class="fas fa-comment-dots"></i> 服务器动态</h2>
@@ -770,7 +990,7 @@
 
   <script>
     // ============================================================
-    // 配置 - 请修改为你的 Worker 地址
+    // 配置
     // ============================================================
     const API_BASE = 'https://api.jssj.cc.cd';
 
@@ -786,6 +1006,7 @@
     const body = document.body;
 
     const homePage = document.getElementById('homePage');
+    const serverPage = document.getElementById('serverPage');
     const forumPage = document.getElementById('forumPage');
     const underConstructionPage = document.getElementById('underConstructionPage');
     const menuHome = document.getElementById('menuHome');
@@ -796,38 +1017,45 @@
 
     function showHome() {
       homePage.style.display = 'flex';
-      forumPage.classList.remove('active');
-      forumPage.style.display = 'none';
-      underConstructionPage.classList.remove('active');
-      underConstructionPage.style.display = 'none';
+      serverPage.classList.remove('active'); serverPage.style.display = 'none';
+      forumPage.classList.remove('active'); forumPage.style.display = 'none';
+      underConstructionPage.classList.remove('active'); underConstructionPage.style.display = 'none';
       closeSidebar();
+    }
+
+    function showServer() {
+      homePage.style.display = 'none';
+      serverPage.style.display = 'flex'; serverPage.classList.add('active');
+      forumPage.classList.remove('active'); forumPage.style.display = 'none';
+      underConstructionPage.classList.remove('active'); underConstructionPage.style.display = 'none';
+      closeSidebar();
+      fetchServerStatus();
     }
 
     function showForum() {
       homePage.style.display = 'none';
-      forumPage.style.display = 'flex';
-      forumPage.classList.add('active');
-      underConstructionPage.classList.remove('active');
-      underConstructionPage.style.display = 'none';
+      serverPage.classList.remove('active'); serverPage.style.display = 'none';
+      forumPage.style.display = 'flex'; forumPage.classList.add('active');
+      underConstructionPage.classList.remove('active'); underConstructionPage.style.display = 'none';
       closeSidebar();
       fetchForumPosts();
     }
 
     function showUnderConstruction() {
       homePage.style.display = 'none';
-      forumPage.classList.remove('active');
-      forumPage.style.display = 'none';
-      underConstructionPage.style.display = 'flex';
-      underConstructionPage.classList.add('active');
+      serverPage.classList.remove('active'); serverPage.style.display = 'none';
+      forumPage.classList.remove('active'); forumPage.style.display = 'none';
+      underConstructionPage.style.display = 'flex'; underConstructionPage.classList.add('active');
       closeSidebar();
     }
 
     homePage.style.display = 'flex';
+    serverPage.style.display = 'none';
     forumPage.style.display = 'none';
     underConstructionPage.style.display = 'none';
 
     menuHome.addEventListener('click', showHome);
-    menuServer.addEventListener('click', showUnderConstruction);
+    menuServer.addEventListener('click', showServer);
     menuMembers.addEventListener('click', showUnderConstruction);
     menuForum.addEventListener('click', showForum);
     backHomeBtn.addEventListener('click', showHome);
@@ -838,7 +1066,6 @@
     });
 
     function openSidebar() { sidebar.classList.add('open'); }
-
     function closeSidebar() { sidebar.classList.remove('open'); }
 
     sidebarToggle.addEventListener('click', openSidebar);
@@ -884,7 +1111,6 @@
         }
       } catch (err) {
         console.warn('获取运行天数失败:', err);
-        // 降级方案：模拟数据
         const startDate = new Date('2024-06-28');
         const now = new Date();
         const diffTime = Math.abs(now - startDate);
@@ -894,6 +1120,109 @@
     }
 
     fetchUptime();
+
+    // ============================================================
+    // API 调用 - 服务器实时状态
+    // ============================================================
+    let serverRefreshTimer = null;
+
+    async function fetchServerStatus() {
+      const container = document.getElementById('serverStatusContent');
+
+      try {
+        const resp = await fetch(API_BASE + '/api/mc-status');
+        const data = await resp.json();
+
+        if (!data.success) {
+          container.innerHTML = `<div class="server-status-card" style="text-align:center;padding:3rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;opacity:0.2;"></i>
+            <div style="margin-top:1rem;opacity:0.3;">无法获取服务器状态</div>
+          </div>`;
+          return;
+        }
+
+        const online = data.online;
+        const statusClass = online ? 'online' : 'offline';
+        const icon = online ? 'fa-check-circle' : 'fa-times-circle';
+        const label = online ? '在线' : '离线';
+
+        const playersOnline = online ? (data.players?.online ?? 0) : '-';
+        const playersMax = online ? (data.players?.max ?? '?') : '-';
+        const version = online ? (data.version ?? '未知') : '-';
+        const hostname = data.hostname || '-';
+        const ipPort = data.ip ? (data.port === 25565 ? data.ip : data.ip + ':' + data.port) : '-';
+
+        let motdHtml = '';
+        if (online && data.motd?.html?.length) {
+          motdHtml = data.motd.html.join('<br>');
+        } else if (online && data.motd?.clean?.length) {
+          motdHtml = data.motd.clean.join('<br>');
+        } else {
+          motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
+        }
+
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
+
+        container.innerHTML = `
+          <div class="server-status-card">
+            <div class="status-badge ${statusClass}">
+              <span class="dot"></span>
+              <i class="fas ${icon}"></i>
+              ${label}
+            </div>
+
+            <div class="server-info-grid">
+              <div class="info-item">
+                <div class="label">服务器地址</div>
+                <div class="value copy-ip" onclick="copyIP('${ipPort}')" title="点击复制">
+                  ${ipPort} <i class="fas fa-copy"></i>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">主机名</div>
+                <div class="value">${hostname}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">在线玩家</div>
+                <div class="value">${playersOnline} / ${playersMax}</div>
+              </div>
+
+              <div class="info-item">
+                <div class="label">游戏版本</div>
+                <div class="value">${version}</div>
+              </div>
+
+              <div class="info-item" style="grid-column:1/-1;">
+                <div class="label">MOTD</div>
+                <div class="motd-display">${motdHtml}</div>
+              </div>
+            </div>
+          </div>
+          <div class="server-updated">
+            <i class="fas fa-sync-alt"></i> 更新于 ${timeStr}
+            <button class="refresh-btn" onclick="fetchServerStatus()"><i class="fas fa-redo"></i> 刷新</button>
+          </div>
+        `;
+      } catch (err) {
+        console.warn('获取服务器状态失败:', err);
+        container.innerHTML = `<div class="server-status-card" style="text-align:center;padding:3rem;">
+          <i class="fas fa-exclamation-triangle" style="font-size:2rem;opacity:0.2;"></i>
+          <div style="margin-top:1rem;opacity:0.3;">请求失败，请检查网络</div>
+          <button class="refresh-btn" onclick="fetchServerStatus()" style="margin-top:0.8rem;opacity:0.4;">重试</button>
+        </div>`;
+      }
+
+      // 30秒自动刷新
+      if (serverRefreshTimer) clearTimeout(serverRefreshTimer);
+      serverRefreshTimer = setTimeout(fetchServerStatus, 30000);
+    }
+
+    window.copyIP = function(ip) {
+      navigator.clipboard.writeText(ip).catch(() => {});
+    };
 
     // ============================================================
     // API 调用 - 获取帖子列表
