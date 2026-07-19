@@ -1220,15 +1220,18 @@
 
         // 降级：直接从浏览器调 mcsrvstat.us
         try {
-          const resp = await fetch('https://api.mcsrvstat.us/2/jssj.cc.cd');
+          const resp = await fetch('https://api.mcsrvstat.us/3/jssj.cc.cd');
           const data = await resp.json();
+          const fbList = data.players?.list || [];
+          const fbNames = fbList.length && typeof fbList[0] === 'object'
+            ? fbList.map(p => p.name) : fbList;
           renderServerStatus({
             success: true,
             online: data.online || false,
             players: data.online && data.players ? {
               online: data.players.online ?? 0,
               max: data.players.max ?? 0,
-              list: data.players.list || [],
+              list: fbNames,
             } : { online: 0, max: 0, list: [] },
             info: data.info?.list || [],
             motd: data.motd || null,
