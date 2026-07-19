@@ -824,42 +824,20 @@
     }
 
     .bot-section {
-      cursor: pointer;
-      user-select: none;
       min-width: 90px;
     }
 
-    .bot-section .bot-count-display {
-      font-size: 1.2rem;
+    .bot-section .bot-label {
+      font-size: 1rem;
       font-weight: 400;
-      color: rgba(160, 175, 190, 0.5);
+      color: rgba(160, 175, 190, 0.4);
       display: flex;
       align-items: center;
       gap: 6px;
     }
 
-    body.light-mode .bot-section .bot-count-display {
-      color: rgba(60, 100, 130, 0.4);
-    }
-
-    .bot-section .bot-count-display i {
-      font-size: 1rem;
-      transition: transform 0.2s;
-    }
-
-    .bot-section .bot-count-display i.rotated {
-      transform: rotate(180deg);
-    }
-
-    .bot-detail {
-      display: none;
-      margin-top: 0.5rem;
-      font-size: 0.8rem;
-      color: rgba(160, 175, 190, 0.25);
-    }
-
-    .bot-section.open .bot-detail {
-      display: block;
+    body.light-mode .bot-section .bot-label {
+      color: rgba(60, 100, 130, 0.3);
     }
 
     .motd-display {
@@ -1211,32 +1189,29 @@
       } else {
         let cols = '';
 
-        // Java — 左
-        cols += `<div class="player-section">
-          <div class="section-label"><span class="badge java">Java</span> ${javaPlayers.length} 人</div>
-          <div class="player-list">${javaPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
-        </div>`;
+        if (javaPlayers.length > 0) {
+          cols += `<div class="player-section">
+            <div class="section-label"><span class="badge java">Java</span> ${javaPlayers.length} 人</div>
+            <div class="player-list">${javaPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+          </div>`;
+        }
 
-        // 基岩版 — 中
-        cols += `<div class="player-section">
-          <div class="section-label"><span class="badge bedrock">BE</span> ${bedrockPlayers.length} 人</div>
-          <div class="player-list">${bedrockPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
-        </div>`;
+        if (bedrockPlayers.length > 0) {
+          cols += `<div class="player-section">
+            <div class="section-label"><span class="badge bedrock">BE</span> ${bedrockPlayers.length} 人</div>
+            <div class="player-list">${bedrockPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+          </div>`;
+        }
 
-        // 机器人 — 右（可展开）
-        cols += `<div class="player-section bot-section" onclick="toggleBots(this)">
-          <div class="section-label" style="margin-bottom:0;">
-            <span class="bot-count-display">
-              <i class="fas fa-robot"></i> ${botCount}
-              <i class="fas fa-chevron-down" style="font-size:0.65rem;opacity:0.4;"></i>
-            </span>
-          </div>
-          <div class="bot-detail">
-            ${botCount > 0 ? 'Anonymous Player × ' + botCount : '无'}
-          </div>
-        </div>`;
+        if (botCount > 0) {
+          cols += `<div class="player-section bot-section">
+            <div class="section-label" style="margin-bottom:0;">
+              <span class="bot-label"><i class="fas fa-robot"></i> ${botCount}</span>
+            </div>
+          </div>`;
+        }
 
-        bodyHtml = `<div class="player-grid">${cols}</div>`;
+        bodyHtml = cols ? `<div class="player-grid">${cols}</div>` : '<div style="opacity:0.3;text-align:center;padding:1.5rem 0;">暂无玩家在线</div>';
       }
 
       container.innerHTML = `
@@ -1260,14 +1235,6 @@
       `;
       scheduleRefresh();
     }
-
-    window.toggleBots = function(el) {
-      el.classList.toggle('open');
-      const detail = el.querySelector('.bot-detail');
-      const icon = el.querySelector('.fa-chevron-down');
-      if (detail) detail.classList.toggle('open');
-      if (icon) icon.classList.toggle('rotated');
-    };
 
     function scheduleRefresh() {
       if (serverRefreshTimer) clearTimeout(serverRefreshTimer);
@@ -1304,7 +1271,7 @@
               max: data.players.max ?? 0,
               list: fbNames,
             } : { online: 0, max: 0, list: [] },
-            info: data.info?.list || [],
+            info: data.info?.clean || data.info?.raw || [],
             motd: data.motd || null,
           });
         } catch (fallbackErr) {
