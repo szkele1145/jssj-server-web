@@ -694,9 +694,9 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 0.4rem 1.2rem;
+      padding: 0.35rem 1.2rem;
       border-radius: 20px;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 400;
       letter-spacing: 2px;
       margin-bottom: 1.2rem;
@@ -708,18 +708,10 @@
       background: rgba(90, 208, 160, 0.08);
     }
 
-    .status-badge.online i {
-      color: #5ad0a0;
-    }
-
     .status-badge.offline {
       color: #e06060;
       border: 1px solid rgba(224, 96, 96, 0.2);
       background: rgba(224, 96, 96, 0.08);
-    }
-
-    .status-badge.offline i {
-      color: #e06060;
     }
 
     .status-badge .dot {
@@ -739,70 +731,80 @@
       box-shadow: 0 0 8px rgba(224, 96, 96, 0.4);
     }
 
-    .server-info-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    @media (max-width: 600px) {
-      .server-info-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .info-item {
-      padding: 0.8rem 1rem;
-      background: rgba(200, 215, 230, 0.02);
-      border: 1px solid rgba(160, 175, 190, 0.04);
-      border-radius: 10px;
-      transition: 0.2s;
-    }
-
-    body.light-mode .info-item {
-      background: rgba(200, 215, 230, 0.04);
-      border-color: rgba(80, 120, 160, 0.04);
-    }
-
-    .info-item .label {
-      font-size: 0.75rem;
-      color: rgba(160, 175, 190, 0.4);
+    .online-count {
+      font-size: 1.4rem;
+      font-weight: 450;
       letter-spacing: 2px;
-      margin-bottom: 0.3rem;
-      text-transform: uppercase;
-    }
-
-    body.light-mode .info-item .label {
-      color: rgba(60, 100, 130, 0.4);
-    }
-
-    .info-item .value {
-      font-size: 1.05rem;
       color: #d0e6f0;
-      font-weight: 400;
+      margin-bottom: 1.2rem;
     }
 
-    body.light-mode .info-item .value {
+    body.light-mode .online-count {
       color: #1a3a4e;
     }
 
-    .info-item .value.copy-ip {
-      cursor: pointer;
-      transition: 0.2s;
+    .player-section {
+      margin-bottom: 1rem;
     }
 
-    .info-item .value.copy-ip:hover {
-      color: #7bb3d9;
+    .player-section:last-of-type {
+      margin-bottom: 0;
     }
 
-    .info-item .value.copy-ip i {
-      font-size: 0.8rem;
-      margin-left: 6px;
-      opacity: 0.4;
+    .player-section .section-label {
+      font-size: 0.75rem;
+      color: rgba(160, 175, 190, 0.35);
+      letter-spacing: 2px;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    body.light-mode .player-section .section-label {
+      color: rgba(60, 100, 130, 0.35);
+    }
+
+    .player-section .section-label .badge {
+      font-size: 0.6rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+      letter-spacing: 1px;
+    }
+
+    .badge.java {
+      border: 1px solid rgba(90, 176, 224, 0.2);
+      background: rgba(90, 176, 224, 0.1);
+      color: #5ab0e0;
+    }
+
+    .badge.bedrock {
+      border: 1px solid rgba(224, 176, 90, 0.2);
+      background: rgba(224, 176, 90, 0.1);
+      color: #e0b05a;
+    }
+
+    .player-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .player-name {
+      padding: 0.2rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: rgba(200, 215, 230, 0.03);
+      border: 1px solid rgba(160, 175, 190, 0.04);
+      color: #c8dce6;
+    }
+
+    body.light-mode .player-name {
+      background: rgba(200, 215, 230, 0.06);
+      color: #1a3a4e;
     }
 
     .motd-display {
-      grid-column: 1 / -1;
       padding: 1rem 1.2rem;
       background: rgba(0, 0, 0, 0.2);
       border: 1px solid rgba(160, 175, 190, 0.06);
@@ -812,6 +814,7 @@
       line-height: 1.6;
       text-align: center;
       color: #c8dce6;
+      margin-top: 1.2rem;
     }
 
     body.light-mode .motd-display {
@@ -1121,21 +1124,53 @@
       const container = document.getElementById('serverStatusContent');
       const online = data.online;
       const statusClass = online ? 'online' : 'offline';
-      const icon = online ? 'fa-check-circle' : 'fa-times-circle';
       const label = online ? '在线' : '离线';
 
-      const playersOnline = online ? (data.players?.online ?? 0) : '-';
-      const playersMax = online ? (data.players?.max ?? '?') : '-';
-      const version = online ? (data.version ?? '未知') : '-';
-      const ipInfo = data.ip ? (data.port === 25565 ? data.ip : data.ip + ':' + data.port) : '-';
+      const count = online ? (data.players?.online ?? 0) : 0;
 
       let motdHtml = '';
       if (online && data.motd?.html?.length) {
         motdHtml = data.motd.html.join('<br>');
       } else if (online && data.motd?.clean?.length) {
         motdHtml = data.motd.clean.join('<br>');
-      } else {
+      } else if (online) {
         motdHtml = '<span style="opacity:0.3;">无 MOTD</span>';
+      }
+
+      // 分离 Java / 基岩版 / 机器人
+      const javaPlayers = data.players?.list || [];
+      const infoList = data.info || [];
+      const bedrockPlayers = infoList.filter(n => n.startsWith('.')).map(n => n.slice(1));
+      const botCount = infoList.filter(n => n === 'Anonymous Player').length;
+
+      let playersHtml = '';
+      if (!online) {
+        playersHtml = '<div style="opacity:0.3;text-align:center;padding:1rem 0;">服务器离线</div>';
+      } else if (javaPlayers.length === 0 && bedrockPlayers.length === 0) {
+        playersHtml = '<div style="opacity:0.3;text-align:center;padding:0.5rem 0;">暂无玩家在线</div>';
+      } else {
+        let sections = '';
+        if (javaPlayers.length > 0) {
+          sections += `
+            <div class="player-section">
+              <div class="section-label"><span class="badge java">Java</span> ${javaPlayers.length} 人</div>
+              <div class="player-list">${javaPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+            </div>`;
+        }
+        if (bedrockPlayers.length > 0) {
+          sections += `
+            <div class="player-section">
+              <div class="section-label"><span class="badge bedrock">BE</span> ${bedrockPlayers.length} 人</div>
+              <div class="player-list">${bedrockPlayers.map(n => `<span class="player-name">${n}</span>`).join('')}</div>
+            </div>`;
+        }
+        if (botCount > 0) {
+          sections += `
+            <div class="player-section">
+              <div class="section-label"><span style="opacity:0.4;"><i class="fas fa-robot"></i> 机器人</span> ${botCount}</div>
+            </div>`;
+        }
+        playersHtml = sections;
       }
 
       const now = new Date();
@@ -1143,40 +1178,17 @@
 
       container.innerHTML = `
         <div class="server-status-card">
-          <div class="status-badge ${statusClass}">
-            <span class="dot"></span>
-            <i class="fas ${icon}"></i>
-            ${label}
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+            <div class="status-badge ${statusClass}">
+              <span class="dot"></span>
+              ${label}
+            </div>
+            <div class="online-count"><i class="fas fa-users" style="opacity:0.3;margin-right:6px;"></i> ${count} 人在线</div>
           </div>
 
-          <div class="server-info-grid">
-            <div class="info-item">
-                <div class="label">服务器地址</div>
-                <div class="value copy-ip" onclick="copyIP('jssj.cc.cd')" title="点击复制">
-                  jssj.cc.cd <i class="fas fa-copy"></i>
-                </div>
-              </div>
+          ${playersHtml}
 
-              <div class="info-item">
-                <div class="label">IP / 端口</div>
-                <div class="value">${ipInfo}</div>
-              </div>
-
-            <div class="info-item">
-              <div class="label">在线玩家</div>
-              <div class="value">${playersOnline} / ${playersMax}</div>
-            </div>
-
-            <div class="info-item">
-              <div class="label">游戏版本</div>
-              <div class="value">${version}</div>
-            </div>
-
-            <div class="info-item" style="grid-column:1/-1;">
-              <div class="label">MOTD</div>
-              <div class="motd-display">${motdHtml}</div>
-            </div>
-          </div>
+          <div class="motd-display">${motdHtml}</div>
         </div>
         <div class="server-updated">
           <i class="fas fa-sync-alt"></i> 更新于 ${timeStr}
@@ -1213,14 +1225,12 @@
           renderServerStatus({
             success: true,
             online: data.online || false,
-            ip: data.ip || null,
-            port: data.port || null,
-            hostname: data.hostname || null,
-            players: data.online ? {
-              online: data.players?.online ?? 0,
-              max: data.players?.max ?? 0
-            } : null,
-            version: data.version || null,
+            players: data.online && data.players ? {
+              online: data.players.online ?? 0,
+              max: data.players.max ?? 0,
+              list: data.players.list || [],
+            } : { online: 0, max: 0, list: [] },
+            info: data.info?.list || [],
             motd: data.motd || null,
           });
         } catch (fallbackErr) {
@@ -1234,10 +1244,6 @@
         }
       }
     }
-
-    window.copyIP = function(ip) {
-      navigator.clipboard.writeText(ip).catch(() => {});
-    };
 
     // ============================================================
     // API 调用 - 获取帖子列表
