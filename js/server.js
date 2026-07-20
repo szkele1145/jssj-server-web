@@ -72,41 +72,40 @@ async function fetchServerStatus() {
   }
 
   // 降级：直连 mcsrvstat.us v3+v2
-  console.log('[服务器状态] 尝试直连 mcsrvstat.us v3/v2...');
+    console.log('[服务器状态] 尝试直连...');
   try {
-    let merged = { online: false, players: null, motd: null };
+    let online = false, maxP = 0, maxOnline = 0, real = [], extra = [], motd = null;
     for (const ver of ['3', '2']) {
       try {
         const resp = await fetch(`https://api.mcsrvstat.us/${ver}/jssj.cc.cd`);
         if (!resp.ok) { console.warn('[服务器状态] v' + ver + ' HTTP ' + resp.status); continue; }
         const d = await resp.json();
         console.log('[服务器状态] v' + ver + ' 返回:', JSON.stringify(d).slice(0, 300));
-        if (d.online) merged.online = true;
-        if (d.motd && !merged.motd) merged.motd = d.motd;
+        if (d.online) online = true;
+        if (d.motd && !motd) motd = d.motd;
         if (d.players) {
-          if (!merged.players) merged.players = { online: 0, max: 0, names: [], info: [] };
-          merged.players.online = Math.max(merged.players.online, d.players.online ?? 0);
-          merged.players.max = Math.max(merged.players.max, d.players.max ?? 0);
+          maxP = Math.max(maxP, d.players.max ?? 0);
+          maxOnline = Math.max(maxOnline, d.players.online ?? 0);
           const raw = d.players.list || [];
           const names = raw.length && typeof raw[0] === 'object' ? raw.map(p => p.name) : raw;
-          merged.players.names = [...new Set([...merged.players.names, ...names])];
+          real = [...new Set([...real, ...names])];
           const info = d.info?.clean || d.info?.raw || [];
-          merged.players.info = [...new Set([...merged.players.info, ...info])];
+          extra = [...new Set([...extra, ...info])];
         }
       } catch (e) { console.warn('[服务器状态] v' + ver + ' 异常:', e.message); }
     }
-    if (!merged.players) merged.players = { online: 0, max: 0, names: [], info: [] };
-    const p = merged.players;
-    console.log('[服务器状态] 直连合并结果:', JSON.stringify({ online: merged.online, players: { online: p.online, max: p.max, names: p.names.length, info: p.info.length } }));
+    const java = real.filter(n => n && !n.startsWith('.'));
+    const bedrock = [...new Set([
+      ...real.filter(n => n && n.startsWith('.')).map(n => n.slice(1)),
+      ...extra.filter(n => n && n.startsWith('.')).map(n => n.slice(1)),
+    ])];
+    const totalOnline = Math.max(java.length + bedrock.length, maxOnline);
+    const bots = Math.max(0, totalOnline - java.length - bedrock.length);
+    console.log('[服务器状态] 直连合并结果:', JSON.stringify({ online, players: { online: totalOnline, max: maxP, java: java.length, bedrock: bedrock.length, bots } }));
     renderServerStatus({
-      success: true, online: merged.online,
-      players: {
-        online: p.online, max: p.max,
-        java: p.names.filter(n => n && !n.startsWith('.')),
-        bedrock: [...new Set([...p.names.filter(n => n && n.startsWith('.')).map(n => n.slice(1)), ...p.info.filter(n => n && n.startsWith('.')).map(n => n.slice(1))])],
-        bots: p.info.filter(n => n === 'Anonymous Player').length,
-      },
-      motd: merged.motd,
+      success: true, online,
+      players: { online: totalOnline, max: maxP, java, bedrock, bots },
+      motd,
     });
   } catch (e) {
     console.error('[服务器状态] 直连完全失败:', e);
