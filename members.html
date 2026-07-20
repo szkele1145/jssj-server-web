@@ -8,6 +8,10 @@
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="css/style.css">
 <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode')</script>
+<style>
+  .rule-item{display:flex;align-items:flex-start;gap:10px;padding:0.6rem 0.8rem;border-radius:8px;background:rgba(200,215,230,0.02);border:1px solid rgba(160,175,190,0.04);color:#c8dce6;font-size:0.95rem;line-height:1.6}
+  html.light-mode .rule-item{color:#1a3a4e;background:rgba(200,215,230,0.06)}
+</style>
 </head>
 <body>
 
@@ -43,9 +47,30 @@
 
   <main class="main-content">
     <div class="page-container">
-      <div id="underConstructionPage">
-        <div style="font-size:1.3rem;font-weight:350;letter-spacing:2px;color:#b8d0dd;text-align:center;line-height:2;">可恶的安安<br>我每次叫他写成员简介就跑路</div>
-        <a href="index.html" class="back-home-btn"><i class="fas fa-arrow-left" style="margin-right:8px;"></i> 回到首页</a>
+      <div style="display:flex;flex-direction:column;flex:1;gap:1.2rem;padding-top:1rem;">
+        <div class="server-header">
+          <h2><i class="fas fa-users"></i> 成员</h2>
+        </div>
+
+        <div class="server-status-card">
+          <div style="display:flex;flex-direction:column;gap:1.2rem;">
+
+            <div style="text-align:center;font-size:1.4rem;font-weight:400;letter-spacing:3px;color:#b8d0dd;line-height:2;">可恶的安安<br><span style="font-size:1.2rem;font-weight:450;">我每次叫他写成员简介就跑路</span></div>
+
+            <div style="display:flex;flex-direction:column;gap:0.6rem;">
+              <div class="rule-item"><span>有外挂不查，最后我们自己查出来的</span></div>
+              <div class="rule-item"><span>服务器卡成大粪，不维护，天天掉帧掉刻</span></div>
+              <div class="rule-item"><span>备份回档找服主，最快三天才有回应，还不一定能处理</span></div>
+              <div class="rule-item"><span>服主与玩家互动太少，对服务器不管不顾</span></div>
+              <div class="rule-item"><span>宣传视频长期不更新，嘴上说在做了在做了，一点没动</span></div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="text-align:center;">
+          <a href="index.html" class="back-home-btn"><i class="fas fa-arrow-left" style="margin-right:8px;"></i> 回到首页</a>
+        </div>
       </div>
     </div>
   </main>
