@@ -6,6 +6,7 @@
 <title>建设世界 · 首页</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link rel="stylesheet" href="css/style.css">
+<script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode')</script>
 </head>
 <body>
 
@@ -62,8 +63,8 @@ sc.addEventListener('click',closeSidebar);
 nb.addEventListener('click',function(e){e.stopPropagation();openSidebar()});
 document.addEventListener('click',function(e){if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==st&&!st.contains(e.target)&&e.target!==nb)closeSidebar()});
 sidebar.addEventListener('click',function(e){e.stopPropagation()});
-if(!window.matchMedia('(prefers-color-scheme:dark)').matches){bd.classList.add('light-mode');ti.className='fas fa-sun'}
-tt.addEventListener('click',function(){bd.classList.toggle('light-mode');ti.className=bd.classList.contains('light-mode')?'fas fa-sun':'fas fa-moon'});
+var savedTheme=localStorage.getItem('theme');if(savedTheme==='light'){bd.classList.add('light-mode');ti.className='fas fa-sun'}else if(!savedTheme&&!window.matchMedia('(prefers-color-scheme:dark)').matches){bd.classList.add('light-mode');ti.className='fas fa-sun';localStorage.setItem('theme','light')}
+tt.addEventListener('click',function(){bd.classList.toggle('light-mode');document.documentElement.classList.toggle('light-mode');var isLight=bd.classList.contains('light-mode');localStorage.setItem('theme',isLight?'light':'dark');ti.className=isLight?'fas fa-sun':'fas fa-moon'});
 </script>
 </body>
 </html>
