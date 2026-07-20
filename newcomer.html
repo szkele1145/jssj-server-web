@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>建设世界 · 新人须知</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode')</script>
+<style>
+  .rule-list{display:flex;flex-direction:column;gap:0.6rem}
+  .rule-item{display:flex;align-items:flex-start;gap:10px;padding:0.5rem 0.8rem;border-radius:8px;background:rgba(200,215,230,0.02);border:1px solid rgba(160,175,190,0.04);color:#c8dce6;font-size:0.95rem;line-height:1.6}
+  html.light-mode .rule-item{color:#1a3a4e;background:rgba(200,215,230,0.06)}
+  .rule-item i{margin-top:3px;flex-shrink:0;color:#7bb3d9}
+</style>
+</head>
+<body>
+
+<div class="grid-background"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <span>📁 目录</span>
+    <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="sidebar-menu">
+    <a href="index.html"><i class="fas fa-home"></i> 首页</a>
+    <a href="server.html"><i class="fas fa-server"></i> 服务器</a>
+    <a href="members.html"><i class="fas fa-users"></i> 成员</a>
+    <a href="forum.html"><i class="fas fa-comment-dots"></i> 动态</a>
+    <a href="newcomer.html"><i class="fas fa-book-open"></i> 新人须知</a>
+    <a href="bans.html"><i class="fas fa-gavel"></i> 封挂榜</a>
+    <a href="about.html"><i class="fas fa-info-circle"></i> 关于</a>
+  </div>
+  <div style="margin-top:auto;opacity:.15;font-size:.7rem;padding-top:2rem;letter-spacing:1px;"><i class="fas fa-ellipsis-h"></i> v0.2</div>
+</nav>
+
+<div class="app">
+  <header class="navbar">
+    <div class="navbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+      <div class="server-name">建设世界</div>
+    </div>
+    <div class="navbar-right">
+      <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-container">
+      <div style="display:flex;flex-direction:column;flex:1;gap:1.2rem;padding-top:1rem;">
+        <div class="server-header">
+          <h2><i class="fas fa-book-open"></i> 新人须知</h2>
+        </div>
+
+        <div class="server-status-card">
+          <div style="display:flex;flex-direction:column;gap:1.8rem;">
+
+            <div class="info-item" style="border:none;padding:0;background:transparent;">
+              <div class="label">服务器信息</div>
+              <div class="rule-list" style="margin-top:0.4rem;">
+                <div class="rule-item"><i class="fas fa-users"></i> 审核群：<span style="color:#7bb3d9;font-weight:450;">1067650407</span>（不进群审核无法游玩）</div>
+                <div class="rule-item"><i class="fas fa-gamepad"></i> Java版 1.21.8 · 基岩版 1.21.111</div>
+              </div>
+            </div>
+
+            <div class="info-item" style="border:none;padding:0;background:transparent;">
+              <div class="label">基本规则</div>
+              <div class="rule-list" style="margin-top:0.4rem;">
+                <div class="rule-item"><i class="fas fa-ban" style="color:#e06060;"></i> 禁止使用作弊客户端、外挂、透视等第三方辅助工具</div>
+                <div class="rule-item"><i class="fas fa-ban" style="color:#e06060;"></i> 禁止恶意破坏他人建筑、偷窃物品</div>
+                <div class="rule-item"><i class="fas fa-ban" style="color:#e06060;"></i> 禁止利用游戏漏洞获取不正当利益</div>
+              </div>
+            </div>
+
+            <div class="info-item" style="border:none;padding:0;background:transparent;">
+              <div class="label">游玩须知</div>
+              <div class="rule-list" style="margin-top:0.4rem;">
+                <div class="rule-item" style="display:flex;flex-direction:column;gap:0.3rem;padding-top:0.7rem;padding-bottom:0.7rem;">
+                  <span><i class="fas fa-shield-alt" style="color:#5ab0e0;width:1.3rem;text-align:center;"></i> 我们不缺不死图腾！</span>
+                  <span><span style="display:inline-block;width:1.3rem;"></span> 我们不缺不死图腾！</span>
+                  <span><span style="display:inline-block;width:1.3rem;"></span> 我们不缺不死图腾！</span>
+                </div>
+                <div class="rule-item"><i class="fas fa-skull" style="color:#e06060;"></i> 身上最好多备点图腾，死亡掉落，不要死了</div>
+                <div class="rule-item"><i class="fas fa-gift" style="color:#5ad0a0;"></i> 缺什么在群里说，有多余的都会给你，玩得开心最重要</div>
+                <div class="rule-item"><i class="fas fa-video" style="color:#7bb3d9;"></i> 服务器里很多生电机器，请在讨论群的群文件中查看使用教程视频</div>
+                <div class="rule-item"><i class="fas fa-tools" style="color:#e0b05a;"></i> 如果发现机器损坏，请及时在群里反馈</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 假人使用教程 -->
+        <div class="tuto-card" style="margin-top:0">
+          <style>
+            .tuto-step{display:flex;align-items:flex-start;gap:10px;padding:0.5rem 0.8rem;border-radius:8px;background:rgba(200,215,230,0.02);border:1px solid rgba(160,175,190,0.04);color:#c8dce6;font-size:0.92rem;line-height:1.7;margin-bottom:0.4rem}
+            html.light-mode .tuto-step{color:#1a3a4e;background:rgba(200,215,230,0.06)}
+            .tuto-step .num{flex-shrink:0;width:1.3rem;height:1.3rem;border-radius:50%;background:rgba(90,176,224,.15);border:1px solid rgba(90,176,224,.2);color:#5ab0e0;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:500;margin-top:2px}
+            html.light-mode .tuto-step .num{color:#1f7a9a;background:rgba(30,120,180,.1);border-color:rgba(30,120,180,.15)}
+            .code-inline{color:#7bb3d9;font-family:'Courier New',monospace;background:rgba(0,0,0,.2);padding:0.1rem 0.4rem;border-radius:4px;font-size:0.88rem}
+            html.light-mode .code-inline{background:rgba(0,0,0,.05)}
+            .tuto-note2{padding:0.7rem 1rem;border-radius:8px;background:rgba(224,176,90,.06);border:1px solid rgba(224,176,90,.12);color:#d0b080;font-size:0.9rem;line-height:1.6;margin-top:1rem}
+            html.light-mode .tuto-note2{background:rgba(224,176,90,.04);color:#8a6a40}
+            .tuto-note2 i{color:#e0b05a;margin-right:6px}
+          </style>
+          <div class="server-header" style="padding-bottom:0.8rem;margin-bottom:1.2rem;">
+            <h2 style="font-size:1.3rem;"><i class="fas fa-graduation-cap"></i> 假人使用基础教程</h2>
+          </div>
+          <div style="margin-bottom:1.2rem;font-size:0.85rem;opacity:0.3;letter-spacing:1px;">—— 作者 Psyduckck · 恩师 Jccc1314, Hina666 ——</div>
+
+          <div style="margin-bottom:1.5rem;">
+            <div style="font-size:0.95rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem;"><i class="fas fa-magic" style="color:#7bb3d9;width:1.2rem;"></i> 初次召唤</div>
+            <div class="tuto-step"><span class="num">1</span> 输入 <span class="code-inline">/player 随意名字 spawn</span></div>
+            <div class="tuto-step"><span class="num">2</span> 示例：<span class="code-inline">/player 111 spawn</span> 生成假人名为 bot_111</div>
+          </div>
+
+          <div style="margin-bottom:1.5rem;">
+            <div style="font-size:0.95rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem;"><i class="fas fa-address-card" style="color:#7bb3d9;width:1.2rem;"></i> 给假人上户口</div>
+            <div class="tuto-step"><span class="num">1</span> 准星对准已召唤的假人</div>
+            <div class="tuto-step"><span class="num">2</span> 输入 <span class="code-inline">/playerManager save 假人名</span></div>
+            <div class="tuto-step"><span class="num">3</span> 示例：<span class="code-inline">/playerManager save bot_111</span></div>
+            <div style="margin-top:0.2rem;font-size:0.8rem;opacity:0.4;padding-left:0.8rem;"><i class="fas fa-info-circle"></i> 上户口后可使用快捷方式</div>
+          </div>
+
+          <div style="margin-bottom:1.5rem;">
+            <div style="font-size:0.95rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem;"><i class="fas fa-times-circle" style="color:#7bb3d9;width:1.2rem;"></i> 下假人</div>
+            <div class="tuto-step"><span class="num">1</span> 输入 <span class="code-inline">/player 假人名 kill</span></div>
+            <div class="tuto-step"><span class="num">2</span> 示例：<span class="code-inline">/player bot_111 kill</span></div>
+          </div>
+
+          <div style="margin-bottom:1.5rem;">
+            <div style="font-size:0.95rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem;"><i class="fas fa-bolt" style="color:#7bb3d9;width:1.2rem;"></i> 快捷召唤方式</div>
+            <div class="tuto-step"><span class="num">1</span> 输入 <span class="code-inline">/playerManager spawn 假人名</span></div>
+            <div class="tuto-step"><span class="num">2</span> 此时可用鼠标选取目标位置</div>
+            <div class="tuto-step"><span class="num">3</span> 示例：<span class="code-inline">/playerManager spawn bot_111</span></div>
+          </div>
+
+          <div class="tuto-note2">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>特别注意：</strong>同为召唤假人——<span class="code-inline">playerManager</span> 是在默认位置（上户口后初次召唤位置）召唤；而 <span class="code-inline">/player</span> 是在你当前所在位置召唤。
+          </div>
+
+          <div style="border-top:1px solid rgba(160,175,190,.06);margin:1.5rem 0;"></div>
+
+          <div style="margin-bottom:0;">
+            <div style="font-size:0.95rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem;"><i class="fas fa-hand-pointer" style="color:#7bb3d9;width:1.2rem;"></i> 假人使用</div>
+            <div class="tuto-step"><span class="num">➊</span> 鼠标右键 → 打开假人背包，可存放物品<br><span style="opacity:0.4;font-size:0.85rem;">（下假人不掉落，假人死亡掉落）</span></div>
+            <div class="tuto-step"><span class="num">➋</span> 让假人右键：光标对准目标方块 → <span class="code-inline">/player 假人名 use</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="footer-copy">© 2077 建设世界. 并不保留所有权利。</div>
+</div>
+
+<script>
+const sidebar=document.getElementById('sidebar'),st=document.getElementById('sidebarToggle'),sc=document.getElementById('sidebarClose'),tt=document.getElementById('themeToggle'),ti=document.getElementById('themeIcon'),bd=document.body;
+function openSidebar(){sidebar.classList.add('open')}
+function closeSidebar(){sidebar.classList.remove('open')}
+st.addEventListener('click',openSidebar);
+sc.addEventListener('click',closeSidebar);
+document.addEventListener('click',function(e){if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==st&&!st.contains(e.target))closeSidebar()});
+sidebar.addEventListener('click',function(e){e.stopPropagation()});
+var savedTheme=localStorage.getItem('theme');if(savedTheme==='light'){bd.classList.add('light-mode');ti.className='fas fa-sun'}else if(!savedTheme&&!window.matchMedia('(prefers-color-scheme:dark)').matches){bd.classList.add('light-mode');ti.className='fas fa-sun';localStorage.setItem('theme','light')}
+tt.addEventListener('click',function(){bd.classList.toggle('light-mode');document.documentElement.classList.toggle('light-mode');var isLight=bd.classList.contains('light-mode');localStorage.setItem('theme',isLight?'light':'dark');ti.className=isLight?'fas fa-sun':'fas fa-moon'});
+</script>
+</body>
+</html>
