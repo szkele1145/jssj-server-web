@@ -358,7 +358,7 @@
           <form id="voteForm">
             <div class="form-group"><label>投票标题 *</label><input type="text" id="voteTitle" placeholder="输入投票标题" required></div>
             <div class="form-group"><label>投票描述</label><textarea id="voteDesc" placeholder="描述投票内容" rows="2"></textarea></div>
-            <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">创建投票</button></div></div>
+            <div class="form-row"><div class="form-group"><label>截止日期（选填）</label><input type="date" id="voteDeadline"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">创建投票</button></div></div>
           </form>
         </div>
       </div>
@@ -507,9 +507,10 @@
           <div class="post-item">
             <div class="info">
               <span class="title">${v.title}</span>
-              <span class="meta">同意 ${v.yesCount} · 反对 ${v.noCount} · ${v.date}</span>
+              <span class="meta">同意 ${v.yesCount} · 反对 ${v.noCount} · ${v.date}${v.deadline ? ' · 截止 ' + v.deadline : ''}</span>
             </div>
             <div class="actions">
+              <button class="btn btn-primary" style="padding:0.3rem 0.8rem;font-size:0.8rem;background:rgba(90,176,224,.1);border:1px solid rgba(90,176,224,.15);color:#5ab0e0;" onclick="editVote('${v.id}')">编辑</button>
               <button class="btn btn-danger" onclick="deleteVote('${v.id}')">删除</button>
             </div>
           </div>
@@ -526,13 +527,14 @@
       e.preventDefault();
       const title = document.getElementById('voteTitle').value.trim();
       const description = document.getElementById('voteDesc').value.trim();
+      const deadline = document.getElementById('voteDeadline').value || null;
       if (!title) { showToast('标题为必填项', 'error'); return; }
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
       try {
         const resp = await fetch(API_BASE + '/api/votes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
-          body: JSON.stringify({ title, description }),
+          body: JSON.stringify({ title, description, deadline }),
         });
         const data = await resp.json();
         if (data.success) {
@@ -558,6 +560,28 @@
         if (data.success) { showToast('✅ 投票已删除'); loadVotes(); }
         else { showToast('❌ ' + (data.error || '删除失败'), 'error'); if (resp.status === 401) logout(); }
       } catch (err) { showToast('删除失败: ' + err.message, 'error'); }
+    };
+
+    window.editVote = async function(id) {
+      const newTitle = prompt('新标题（留空不修改）：');
+      const newDesc = prompt('新描述（留空不修改）：');
+      const newDeadline = prompt('新截止日期 如 2026-08-01（留空不修改）：');
+      if (!newTitle && !newDesc && !newDeadline) { showToast('没有修改', 'error'); return; }
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      const body = {};
+      if (newTitle) body.title = newTitle.trim();
+      if (newDesc) body.description = newDesc.trim();
+      if (newDeadline) body.deadline = newDeadline.trim();
+      try {
+        const resp = await fetch(API_BASE + '/api/votes/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
+          body: JSON.stringify(body),
+        });
+        const data = await resp.json();
+        if (data.success) { showToast('✅ 投票已更新'); loadVotes(); }
+        else { showToast('❌ ' + (data.error || '更新失败'), 'error'); if (resp.status === 401) logout(); }
+      } catch (err) { showToast('更新失败: ' + err.message, 'error'); }
     };
 
     // ============================================================

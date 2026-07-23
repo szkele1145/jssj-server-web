@@ -80,6 +80,7 @@
 
 <script>
 const API_BASE = 'https://api.jssj.cc.cd';
+let showHistory = false;
 
 async function loadVotes() {
   const container = document.getElementById('voteContainer');
@@ -90,29 +91,77 @@ async function loadVotes() {
       container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无投票</div></div>';
       return;
     }
-    const active = data.votes.filter(v => v.active);
-    const closed = data.votes.filter(v => !v.active);
+
+    const today = new Date().toISOString().split('T')[0];
+    const activeVotes = data.votes.filter(v => v.active && (!v.deadline || v.deadline >= today));
+    const historyVotes = data.votes.filter(v => !v.active || (v.deadline && v.deadline < today));
+
     let html = '';
-    for (const v of [...active, ...closed]) {
+
+    // 头部 + 历史投票按钮
+    if (activeVotes.length > 0) {
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">';
+      html += '<div style="font-size:0.9rem;opacity:0.4;letter-spacing:1px;">进行中的投票</div>';
+      if (historyVotes.length > 0) {
+        html += `<button onclick="toggleHistory()" style="padding:0.3rem 1rem;border-radius:20px;border:1px solid rgba(160,175,190,.1);background:transparent;color:rgba(160,175,190,.4);cursor:pointer;font-family:inherit;font-size:0.8rem;letter-spacing:1px;transition:.2s;">📜 历史投票 (${historyVotes.length})</button>`;
+      }
+      html += '</div>';
+    } else if (historyVotes.length > 0) {
+      html += '<div style="display:flex;flex-direction:column;align-items:center;gap:1rem;padding:2rem 0;">';
+      html += '<div style="opacity:0.3;">暂无进行中的投票</div>';
+      html += `<button onclick="toggleHistory()" style="padding:0.6rem 2rem;border-radius:30px;border:1px solid rgba(160,175,190,.15);background:rgba(160,190,215,.04);color:rgba(160,175,190,.5);cursor:pointer;font-family:inherit;font-size:1rem;letter-spacing:2px;transition:.2s;">📜 查看历史投票 (${historyVotes.length})</button>`;
+      html += '</div>';
+    }
+
+    // 活跃投票
+    for (const v of activeVotes) {
       const total = (v.yesCount || 0) + (v.noCount || 0);
       const yesPct = total > 0 ? ((v.yesCount || 0) / total * 100).toFixed(0) : 0;
-      const noPct = total > 0 ? ((v.noCount || 0) / total * 100).toFixed(0) : 0;
       const hasVoted = localStorage.getItem('vote_' + v.id);
       html += `<div class="vote-card">
         <div class="vote-title">${v.title}</div>
         ${v.description ? `<div class="vote-desc">${v.description}</div>` : ''}
-        ${v.active ? `<div class="vote-actions">
+        <div class="vote-actions">
           <button class="vote-btn yes${hasVoted === 'yes' ? ' voted' : ''}" onclick="castVote('${v.id}','yes')" ${hasVoted ? 'disabled' : ''}><i class="fas fa-check"></i> 同意 (${v.yesCount})</button>
           <button class="vote-btn no${hasVoted === 'no' ? ' voted' : ''}" onclick="castVote('${v.id}','no')" ${hasVoted ? 'disabled' : ''}><i class="fas fa-times"></i> 反对 (${v.noCount})</button>
-        </div>` : '<div style="opacity:0.3;font-size:0.85rem;margin-bottom:0.5rem;">投票已关闭</div>'}
+        </div>
         ${total > 0 ? `<div class="vote-bar"><div class="fill-yes" style="width:${yesPct}%"></div><div class="fill-no" style="width:${noPct}%"></div></div>` : ''}
-        <div class="vote-meta"><span>${v.date}</span><span>${v.active ? '进行中' : '已结束'} · ${total} 票</span></div>
+        <div class="vote-meta"><span>${v.date}</span><span>${v.deadline ? '截止 ' + v.deadline : ''} · ${total} 票</span></div>
       </div>`;
     }
+
+    // 历史投票（默认隐藏）
+    if (historyVotes.length > 0) {
+      html += `<div id="historySection" style="display:${showHistory ? 'block' : 'none'};">`;
+      html += '<div style="padding:0.8rem 0 0.5rem 0;font-size:0.85rem;opacity:0.3;letter-spacing:2px;border-top:1px solid rgba(160,175,190,.06);margin-top:1rem;">📜 历史投票</div>';
+      for (const v of historyVotes) {
+        const total = (v.yesCount || 0) + (v.noCount || 0);
+        const yesPct = total > 0 ? ((v.yesCount || 0) / total * 100).toFixed(0) : 0;
+        html += `<div class="vote-card" style="opacity:0.7;">
+          <div class="vote-title">${v.title}</div>
+          ${v.description ? `<div class="vote-desc">${v.description}</div>` : ''}
+          <div style="display:flex;gap:1rem;margin-bottom:0.5rem;font-size:0.9rem;">
+            <span style="color:#5ad0a0;">同意 ${v.yesCount || 0}</span>
+            <span style="opacity:0.3;">|</span>
+            <span style="color:#e06060;">反对 ${v.noCount || 0}</span>
+          </div>
+          ${total > 0 ? `<div class="vote-bar"><div class="fill-yes" style="width:${yesPct}%"></div><div class="fill-no" style="width:${noPct}%"></div></div>` : ''}
+          <div class="vote-meta"><span>${v.date}</span><span>已结束 · ${total} 票</span></div>
+        </div>`;
+      }
+      html += '</div>';
+    }
+
     container.innerHTML = html;
   } catch {
     container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
   }
+}
+
+function toggleHistory() {
+  showHistory = !showHistory;
+  const section = document.getElementById('historySection');
+  if (section) section.style.display = showHistory ? 'block' : 'none';
 }
 
 async function castVote(id, option) {
