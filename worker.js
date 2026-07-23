@@ -352,6 +352,7 @@ export default {
           description: description || '',
           yesCount: 0,
           noCount: 0,
+          voters: {},
           active: true,
           date: new Date().toISOString().split('T')[0],
         };
@@ -405,10 +406,19 @@ export default {
           });
         }
 
-        // 前端 localStorage 保证一人一票，后端只做计数
-        vote.voteCount = (vote.voteCount || 0) + 1;
-        if (option === 'yes') vote.yesCount = (vote.yesCount || 0) + 1;
-        else vote.noCount = (vote.noCount || 0) + 1;
+        // 用客户端 IP 防重复投票
+        const voterIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Real-IP') || 'unknown';
+        if (vote.voters && vote.voters[voterIP]) {
+          return new Response(JSON.stringify({ success: false, error: '你已经投过票了' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          });
+        }
+
+        if (!vote.voters) vote.voters = {};
+        vote.voters[voterIP] = option;
+        vote.yesCount = (vote.yesCount || 0) + (option === 'yes' ? 1 : 0);
+        vote.noCount = (vote.noCount || 0) + (option === 'no' ? 1 : 0);
 
         votes[idx] = vote;
         await env.jsapi.put('votes', JSON.stringify(votes));
