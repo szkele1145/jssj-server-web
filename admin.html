@@ -379,9 +379,19 @@
     </div>
     <div id="toast" class="toast"></div>
   </div>
-    </div>
 
-    <div id="toast" class="toast"></div>
+  <!-- 编辑投票弹窗 -->
+  <div id="editVoteOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:rgba(16,24,32,.95);border:1px solid rgba(160,175,190,.1);border-radius:20px;padding:2.5rem;max-width:460px;width:90%;">
+      <h2 style="font-size:1.3rem;font-weight:400;letter-spacing:2px;color:#b8d0dd;margin-bottom:1.5rem;">✏️ 编辑投票</h2>
+      <div class="form-group"><label>标题</label><input type="text" id="editVoteTitle" style="width:100%;padding:0.7rem 1rem;background:rgba(20,30,40,.4);border:1px solid rgba(160,175,190,.1);border-radius:10px;color:#eef2f5;font-size:0.95rem;font-family:inherit;"></div>
+      <div class="form-group"><label>描述</label><textarea id="editVoteDesc" rows="2" style="width:100%;padding:0.7rem 1rem;background:rgba(20,30,40,.4);border:1px solid rgba(160,175,190,.1);border-radius:10px;color:#eef2f5;font-size:0.95rem;font-family:inherit;"></textarea></div>
+      <div class="form-group"><label>截止日期</label><input type="date" id="editVoteDeadline" style="width:100%;padding:0.7rem 1rem;background:rgba(20,30,40,.4);border:1px solid rgba(160,175,190,.1);border-radius:10px;color:#eef2f5;font-size:0.95rem;font-family:inherit;color-scheme:dark;"></div>
+      <div class="form-row" style="display:flex;gap:0.8rem;margin-top:1.2rem;">
+        <button onclick="closeEditVote()" style="flex:1;padding:0.7rem;border-radius:10px;border:1px solid rgba(160,175,190,.1);background:transparent;color:rgba(160,175,190,.5);cursor:pointer;font-family:inherit;font-size:0.95rem;letter-spacing:1px;">取消</button>
+        <button onclick="saveEditVote()" style="flex:1;padding:0.7rem;border-radius:10px;border:none;background:linear-gradient(135deg,#5ab0e0,#3a8aba);color:#fff;cursor:pointer;font-family:inherit;font-size:0.95rem;letter-spacing:1px;">保存修改</button>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -562,24 +572,47 @@
       } catch (err) { showToast('删除失败: ' + err.message, 'error'); }
     };
 
+    let editingVoteId = null;
+
     window.editVote = async function(id) {
-      const newTitle = prompt('新标题（留空不修改）：');
-      const newDesc = prompt('新描述（留空不修改）：');
-      const newDeadline = prompt('新截止日期 如 2026-08-01（留空不修改）：');
-      if (!newTitle && !newDesc && !newDeadline) { showToast('没有修改', 'error'); return; }
+      editingVoteId = id;
+      // 从列表中找当前数据填充
+      try {
+        const resp = await fetch(API_BASE + '/api/votes');
+        const data = await resp.json();
+        const vote = data.votes?.find(v => v.id === id);
+        if (vote) {
+          document.getElementById('editVoteTitle').value = vote.title || '';
+          document.getElementById('editVoteDesc').value = vote.description || '';
+          document.getElementById('editVoteDeadline').value = vote.deadline || '';
+        }
+      } catch {}
+      document.getElementById('editVoteOverlay').style.display = 'flex';
+    };
+
+    window.closeEditVote = function() {
+      document.getElementById('editVoteOverlay').style.display = 'none';
+      editingVoteId = null;
+    };
+
+    window.saveEditVote = async function() {
+      const title = document.getElementById('editVoteTitle').value.trim();
+      const description = document.getElementById('editVoteDesc').value.trim();
+      const deadline = document.getElementById('editVoteDeadline').value || null;
+      if (!title && !description && !deadline) { showToast('至少修改一项', 'error'); return; }
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
       const body = {};
-      if (newTitle) body.title = newTitle.trim();
-      if (newDesc) body.description = newDesc.trim();
-      if (newDeadline) body.deadline = newDeadline.trim();
+      if (title) body.title = title;
+      if (description) body.description = description;
+      body.deadline = deadline; // 允许清空截止日期
       try {
-        const resp = await fetch(API_BASE + '/api/votes/' + id, {
+        const resp = await fetch(API_BASE + '/api/votes/' + editingVoteId, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
           body: JSON.stringify(body),
         });
         const data = await resp.json();
-        if (data.success) { showToast('✅ 投票已更新'); loadVotes(); }
+        if (data.success) { showToast('✅ 投票已更新'); closeEditVote(); loadVotes(); }
         else { showToast('❌ ' + (data.error || '更新失败'), 'error'); if (resp.status === 401) logout(); }
       } catch (err) { showToast('更新失败: ' + err.message, 'error'); }
     };
