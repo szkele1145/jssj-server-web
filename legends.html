@@ -83,7 +83,7 @@ async function loadStories() {
       // img.remit.ee 走代理显示
       if (content.includes('img.remit.ee')) {
         content = content.replace(/https?:\/\/img\.remit\.ee[^\s<>"]+/g, function(u) {
-          return 'https://images.weserv.nl/?url=' + encodeURIComponent(u);
+          return 'https://corsproxy.io/?' + encodeURIComponent(u);
         });
       }
       return `
