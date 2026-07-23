@@ -708,8 +708,8 @@
       const title = document.getElementById('storyTitle').value.trim();
       let content = document.getElementById('storyContent').value.trim();
       if (!title || !content) { showToast('标题和内容为必填项', 'error'); return; }
-      // 自动识别图床链接转 <img>，换行转 <br>
-      content = content.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s<]+(?:png|jpg|jpeg|gif|webp|bmp|svg)[^\s<]*)/gi, "<img src='$1'>");
+      // 单独一行的图床链接转 <img>，其余换行转 <br>
+      content = content.replace(/^\s*(https?:\/\/[^\s]+(?:png|jpg|jpeg|gif|webp|bmp|svg)[^\s]*)\s*$/gim, "<img src='$1'>").replace(/\n/g, '<br>');
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
       try {
         const resp = await fetch(API_BASE + '/api/stories', {
