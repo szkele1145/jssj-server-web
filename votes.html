@@ -96,14 +96,13 @@ async function loadVotes() {
       const total = v.yesCount + v.noCount;
       const yesPct = total > 0 ? (v.yesCount / total * 100).toFixed(0) : 0;
       const noPct = total > 0 ? (v.noCount / total * 100).toFixed(0) : 0;
-      const voterName = localStorage.getItem('vote_user_' + v.id) || '';
-      const myVote = v.voters && voterName ? v.voters[voterName] : null;
+      const hasVoted = localStorage.getItem('vote_' + v.id);
       html += `<div class="vote-card">
         <div class="vote-title">${v.title}</div>
         ${v.description ? `<div class="vote-desc">${v.description}</div>` : ''}
         ${v.active ? `<div class="vote-actions">
-          <button class="vote-btn yes${myVote === 'yes' ? ' voted' : ''}" onclick="castVote('${v.id}','yes')" ${myVote ? 'disabled' : ''}><i class="fas fa-check"></i> 同意 (${v.yesCount})</button>
-          <button class="vote-btn no${myVote === 'no' ? ' voted' : ''}" onclick="castVote('${v.id}','no')" ${myVote ? 'disabled' : ''}><i class="fas fa-times"></i> 反对 (${v.noCount})</button>
+          <button class="vote-btn yes${hasVoted === 'yes' ? ' voted' : ''}" onclick="castVote('${v.id}','yes')" ${hasVoted ? 'disabled' : ''}><i class="fas fa-check"></i> 同意 (${v.yesCount})</button>
+          <button class="vote-btn no${hasVoted === 'no' ? ' voted' : ''}" onclick="castVote('${v.id}','no')" ${hasVoted ? 'disabled' : ''}><i class="fas fa-times"></i> 反对 (${v.noCount})</button>
         </div>` : '<div style="opacity:0.3;font-size:0.85rem;margin-bottom:0.5rem;">投票已关闭</div>'}
         ${total > 0 ? `<div class="vote-bar"><div class="fill-yes" style="width:${yesPct}%"></div><div class="fill-no" style="width:${noPct}%"></div></div>` : ''}
         <div class="vote-meta"><span>${v.date}</span><span>${v.active ? '进行中' : '已结束'} · ${total} 票</span></div>
@@ -116,12 +115,12 @@ async function loadVotes() {
 }
 
 async function castVote(id, option) {
-  let voter = localStorage.getItem('vote_user_' + id);
+  let voter = localStorage.getItem('vote_anon');
   if (!voter) {
-    voter = prompt('请输入你的游戏ID以投票：');
-    if (!voter) return;
-    localStorage.setItem('vote_user_' + id, voter);
+    voter = 'anon_' + Math.random().toString(36).slice(2, 10);
+    localStorage.setItem('vote_anon', voter);
   }
+  localStorage.setItem('vote_' + id, option);
   try {
     const resp = await fetch(API_BASE + '/api/votes/' + id + '/vote', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
