@@ -328,77 +328,57 @@
         <span class="badge-online">🌐 在线模式</span>
         <button onclick="logout()" style="float:right;background:rgba(200,60,60,.15);border:1px solid rgba(200,60,60,.2);color:#e06060;padding:0.3rem 1rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-family:inherit;">退出登录</button>
       </h1>
-      <div class="subtitle">管理服务器动态 · 投票 · 删帖</div>
+      <div class="subtitle">管理动态 · 投票 · 神人榜</div>
 
-      <div class="card">
-        <h2>📋 所有动态</h2>
-        <div id="postList" class="post-list">
-          <div class="empty-state">加载中...</div>
+      <div style="display:flex;gap:0.5rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <button class="tab-btn active" data-tab="posts" onclick="switchTab('posts')" style="padding:0.5rem 1.5rem;border-radius:10px;border:1px solid rgba(160,175,190,.1);background:rgba(90,176,224,.1);color:#7bb3d9;cursor:pointer;font-family:inherit;font-size:0.9rem;letter-spacing:1px;transition:.2s;">📋 动态</button>
+        <button class="tab-btn" data-tab="votes" onclick="switchTab('votes')" style="padding:0.5rem 1.5rem;border-radius:10px;border:1px solid rgba(160,175,190,.08);background:transparent;color:rgba(160,175,190,.5);cursor:pointer;font-family:inherit;font-size:0.9rem;letter-spacing:1px;transition:.2s;">📊 投票</button>
+        <button class="tab-btn" data-tab="stories" onclick="switchTab('stories')" style="padding:0.5rem 1.5rem;border-radius:10px;border:1px solid rgba(160,175,190,.08);background:transparent;color:rgba(160,175,190,.5);cursor:pointer;font-family:inherit;font-size:0.9rem;letter-spacing:1px;transition:.2s;">👑 神人榜</button>
+      </div>
+
+      <!-- 动态 -->
+      <div class="tab-content" id="tab-posts">
+        <div class="card"><h2>📋 所有动态</h2><div id="postList" class="post-list"><div class="empty-state">加载中...</div></div></div>
+        <div class="card">
+          <h2>📝 发布新动态</h2>
+          <form id="postForm">
+            <div class="form-row"><div class="form-group"><label>标题 *</label><input type="text" id="postTitle" placeholder="输入帖子标题" required></div><div class="form-group"><label>发布人 *</label><input type="text" id="postAuthor" placeholder="作者名称" required></div></div>
+            <div class="form-group"><label>内容摘要</label><textarea id="postExcerpt" placeholder="简短摘要（选填）" rows="2"></textarea></div>
+            <div class="form-group"><label>完整内容</label><textarea id="postContent" placeholder="帖子正文内容" rows="3"></textarea></div>
+            <div class="form-row"><div class="form-group"><label>是否置顶</label><select id="postPinned"><option value="false">否</option><option value="true">是</option></select></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">发布帖子</button></div></div>
+          </form>
         </div>
       </div>
 
-      <div class="card">
-        <h2>📝 发布新动态</h2>
-        <form id="postForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label>标题 *</label>
-              <input type="text" id="postTitle" placeholder="输入帖子标题" required>
-            </div>
-            <div class="form-group">
-              <label>发布人 *</label>
-              <input type="text" id="postAuthor" placeholder="作者名称" required>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>内容摘要</label>
-            <textarea id="postExcerpt" placeholder="简短摘要（选填）" rows="2"></textarea>
-          </div>
-          <div class="form-group">
-            <label>完整内容</label>
-            <textarea id="postContent" placeholder="帖子正文内容" rows="3"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>是否置顶</label>
-              <select id="postPinned">
-                <option value="false">否</option>
-                <option value="true">是</option>
-              </select>
-            </div>
-            <div class="form-group" style="display: flex; align-items: flex-end; justify-content: flex-end;">
-              <button type="submit" class="btn btn-primary">发布帖子</button>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <div class="card">
-        <h2>📋 所有投票</h2>
-        <div id="voteList" class="post-list">
-          <div class="empty-state">加载中...</div>
+      <!-- 投票 -->
+      <div class="tab-content" id="tab-votes" style="display:none;">
+        <div class="card"><h2>📋 所有投票</h2><div id="voteList" class="post-list"><div class="empty-state">加载中...</div></div></div>
+        <div class="card">
+          <h2>📝 创建新投票</h2>
+          <form id="voteForm">
+            <div class="form-group"><label>投票标题 *</label><input type="text" id="voteTitle" placeholder="输入投票标题" required></div>
+            <div class="form-group"><label>投票描述</label><textarea id="voteDesc" placeholder="描述投票内容" rows="2"></textarea></div>
+            <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">创建投票</button></div></div>
+          </form>
         </div>
       </div>
 
-      <div class="card">
-        <h2>📝 创建新投票</h2>
-        <form id="voteForm">
-          <div class="form-group">
-            <label>投票标题 *</label>
-            <input type="text" id="voteTitle" placeholder="输入投票标题" required>
-          </div>
-          <div class="form-group">
-            <label>投票描述</label>
-            <textarea id="voteDesc" placeholder="描述投票内容" rows="2"></textarea>
-          </div>
-          <div class="form-row">
-            <div class="form-group"></div>
-            <div class="form-group" style="display: flex; align-items: flex-end; justify-content: flex-end;">
-              <button type="submit" class="btn btn-primary">创建投票</button>
-            </div>
-          </div>
-        </form>
+      <!-- 神人榜 -->
+      <div class="tab-content" id="tab-stories" style="display:none;">
+        <div class="card"><h2>📋 神人榜</h2><div id="storyList" class="post-list"><div class="empty-state">加载中...</div></div></div>
+        <div class="card">
+          <h2>📝 添加新记录</h2>
+          <form id="storyForm">
+            <div class="form-group"><label>标题 *</label><input type="text" id="storyTitle" placeholder="事件标题" required></div>
+            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="描述事件经过" rows="3" required></textarea></div>
+            <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">添加记录</button></div></div>
+          </form>
+        </div>
       </div>
+
+    </div>
+    <div id="toast" class="toast"></div>
+  </div>
     </div>
 
     <div id="toast" class="toast"></div>
@@ -681,6 +661,81 @@
       } catch (err) {
         showToast('删除失败: ' + err.message, 'error');
       }
+    };
+
+    // ============================================================
+    // Tab 切换
+    // ============================================================
+    window.switchTab = function(name) {
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+      document.getElementById('tab-' + name).style.display = 'block';
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.style.background = el.dataset.tab === name ? 'rgba(90,176,224,.1)' : 'transparent';
+        el.style.color = el.dataset.tab === name ? '#7bb3d9' : 'rgba(160,175,190,.5)';
+        el.style.borderColor = el.dataset.tab === name ? 'rgba(160,175,190,.1)' : 'rgba(160,175,190,.08)';
+      });
+      if (name === 'stories' && !window._storiesLoaded) { window._storiesLoaded = true; loadStories(); }
+    };
+
+    // ============================================================
+    // 加载神人榜
+    // ============================================================
+    async function loadStories() {
+      const container = document.getElementById('storyList');
+      try {
+        const resp = await fetch(API_BASE + '/api/stories');
+        const data = await resp.json();
+        if (!data.success || !data.stories || data.stories.length === 0) {
+          container.innerHTML = '<div class="empty-state">📭 暂无记录</div>';
+          return;
+        }
+        container.innerHTML = data.stories.map(s => `
+          <div class="post-item">
+            <div class="info">
+              <span class="title">${s.title}</span>
+              <span class="meta">${s.date}</span>
+            </div>
+            <div class="actions">
+              <button class="btn btn-danger" onclick="deleteStory('${s.id}')">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch { container.innerHTML = '<div class="empty-state">❌ 加载失败</div>'; }
+    }
+
+    document.getElementById('storyForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('storyTitle').value.trim();
+      const content = document.getElementById('storyContent').value.trim();
+      if (!title || !content) { showToast('标题和内容为必填项', 'error'); return; }
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      try {
+        const resp = await fetch(API_BASE + '/api/stories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
+          body: JSON.stringify({ title, content }),
+        });
+        const data = await resp.json();
+        if (data.success) {
+          showToast('✅ 添加成功');
+          document.getElementById('storyForm').reset();
+          loadStories();
+        } else { showToast('❌ ' + (data.error || '失败'), 'error'); if (resp.status === 401) logout(); }
+      } catch (err) { showToast('失败: ' + err.message, 'error'); }
+    });
+
+    window.deleteStory = async function(id) {
+      if (!confirm('确定要删除这条记录吗？')) return;
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      try {
+        const resp = await fetch(API_BASE + '/api/stories/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + adminPassword },
+        });
+        const data = await resp.json();
+        if (data.success) { showToast('✅ 已删除'); loadStories(); }
+        else { showToast('❌ ' + (data.error || '失败'), 'error'); if (resp.status === 401) logout(); }
+      } catch (err) { showToast('失败: ' + err.message, 'error'); }
     };
   </script>
 </body>

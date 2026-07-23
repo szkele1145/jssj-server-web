@@ -461,6 +461,100 @@ export default {
       }
     }
 
+    // ============================================================
+    // GET /api/stories - 获取神人榜
+    // ============================================================
+    if (path === '/api/stories' && request.method === 'GET') {
+      try {
+        let stories = await env.jsapi.get('stories', 'json');
+        if (!stories) stories = [];
+        stories.sort((a, b) => new Date(b.date) - new Date(a.date));
+        return new Response(JSON.stringify({ success: true, stories }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+    }
+
+    // ============================================================
+    // POST /api/stories - 添加记录（需验证）
+    // ============================================================
+    if (path === '/api/stories' && request.method === 'POST') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        if (authHeader !== `Bearer ${ADMIN_KEY}`) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          });
+        }
+        const body = await request.json();
+        const { title, content } = body;
+        if (!title || !content) {
+          return new Response(JSON.stringify({ success: false, error: '标题和内容为必填项' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          });
+        }
+        let stories = await env.jsapi.get('stories', 'json');
+        if (!stories) stories = [];
+        const newStory = {
+          id: Date.now().toString(),
+          title,
+          content,
+          date: new Date().toISOString().split('T')[0],
+        };
+        stories.push(newStory);
+        await env.jsapi.put('stories', JSON.stringify(stories));
+        return new Response(JSON.stringify({ success: true, message: '添加成功', story: newStory }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+    }
+
+    // ============================================================
+    // DELETE /api/stories/:id - 删除记录（需验证）
+    // ============================================================
+    if (path.startsWith('/api/stories/') && request.method === 'DELETE') {
+      try {
+        const authHeader = request.headers.get('Authorization');
+        if (authHeader !== `Bearer ${ADMIN_KEY}`) {
+          return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+            status: 401,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          });
+        }
+        const storyId = path.split('/').pop();
+        let stories = await env.jsapi.get('stories', 'json');
+        if (!stories) stories = [];
+        const filtered = stories.filter(s => s.id !== storyId);
+        if (filtered.length === stories.length) {
+          return new Response(JSON.stringify({ success: false, error: '记录不存在' }), {
+            status: 404,
+            headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          });
+        }
+        await env.jsapi.put('stories', JSON.stringify(filtered));
+        return new Response(JSON.stringify({ success: true, message: '已删除' }), {
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      } catch (error) {
+        return new Response(JSON.stringify({ success: false, error: error.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        });
+      }
+    }
+
     return new Response(JSON.stringify({ success: false, error: 'Not Found' }), {
       status: 404,
       headers: { 'Content-Type': 'application/json', ...corsHeaders },

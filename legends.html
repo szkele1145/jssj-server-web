@@ -3,19 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>建设世界 · 封挂榜</title>
+<title>建设世界 · 神人榜</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <link rel="icon" href="favicon.png">
 <link rel="stylesheet" href="css/style.css">
 <script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode')</script>
 <style>
-  .bans-table{display:flex;flex-direction:column;gap:0.4rem;margin-top:0.4rem}
-  .ban-row{display:grid;grid-template-columns:1fr 2fr 1fr;gap:0.5rem;padding:0.5rem 0.8rem;border-radius:8px;background:rgba(200,215,230,0.02);border:1px solid rgba(160,175,190,0.04);color:#c8dce6;font-size:0.9rem;align-items:center}
-  html.light-mode .ban-row{color:#1a3a4e;background:rgba(200,215,230,0.06)}
-  .ban-row.header{font-size:0.7rem;color:rgba(160,175,190,0.35);letter-spacing:2px;background:transparent;border-color:transparent}
-  .ban-row .player{font-weight:450}
-  .ban-row .reason{opacity:0.7}
-  .ban-row .date{opacity:0.5;text-align:right;font-size:0.8rem}
+  .story-card{background:rgba(16,24,32,.2);border:1px solid rgba(160,175,190,.04);border-radius:16px;padding:1.5rem 1.8rem;margin-bottom:1.2rem;transition:.2s}
+  html.light-mode .story-card{background:rgba(220,235,250,.12);border-color:rgba(80,120,160,.04)}
+  .story-card:hover{border-color:rgba(160,175,190,.1)}
+  html.light-mode .story-card:hover{border-color:rgba(80,120,160,.1)}
+  .story-title{font-size:1.15rem;font-weight:450;color:#d0e6f0;margin-bottom:0.4rem}
+  html.light-mode .story-title{color:#1a3a4e}
+  .story-meta{font-size:.8rem;color:rgba(160,175,190,.4);letter-spacing:1px;margin-bottom:.6rem}
+  html.light-mode .story-meta{color:rgba(60,100,130,.4)}
+  .story-content{font-size:.95rem;color:rgba(200,215,230,.6);line-height:1.6}
+  html.light-mode .story-content{color:rgba(30,60,80,.6)}
 </style>
 </head>
 <body>
@@ -23,10 +26,7 @@
 <div class="grid-background"></div>
 
 <nav class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <span>📁 目录</span>
-    <button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button>
-  </div>
+  <div class="sidebar-header"><span>📁 目录</span><button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button></div>
   <div class="sidebar-menu">
     <a href="index.html"><i class="fas fa-home"></i> 首页</a>
     <a href="server.html"><i class="fas fa-server"></i> 服务器</a>
@@ -34,6 +34,7 @@
     <a href="forum.html"><i class="fas fa-comment-dots"></i> 动态</a>
     <a href="newcomer.html"><i class="fas fa-book-open"></i> 新人须知</a>
     <a href="votes.html"><i class="fas fa-poll"></i> 投票</a>
+    <a href="legends.html"><i class="fas fa-crown"></i> 神人榜</a>
     <a href="legends.html"><i class="fas fa-crown"></i> 神人榜</a>
     <a href="bans.html"><i class="fas fa-gavel"></i> 封挂榜</a>
     <a href="about.html"><i class="fas fa-info-circle"></i> 关于</a>
@@ -43,42 +44,18 @@
 
 <div class="app">
   <header class="navbar">
-    <div class="navbar-left">
-      <button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-      <div class="server-name">建设世界</div>
-    </div>
-    <div class="navbar-right">
-      <button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button>
-    </div>
+    <div class="navbar-left"><button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button><div class="server-name">建设世界</div></div>
+    <div class="navbar-right"><button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button></div>
   </header>
 
   <main class="main-content">
     <div class="page-container">
       <div style="display:flex;flex-direction:column;flex:1;gap:1.2rem;padding-top:1rem;">
         <div class="server-header">
-          <h2><i class="fas fa-gavel"></i> 封挂榜</h2>
+          <h2><i class="fas fa-crown"></i> 神人榜</h2>
         </div>
-
-        <div class="server-status-card">
-          <div class="bans-table">
-            <div class="ban-row header">
-              <span>玩家</span>
-              <span>原因</span>
-              <span style="text-align:right">日期</span>
-            </div>
-
-            <div class="ban-row">
-              <span class="player">NotGot</span>
-              <span class="reason">使用外挂飞行，坦然认罪</span>
-              <span class="date">2026.05.12</span>
-            </div>
-            <div class="ban-row">
-              <span class="player">_jiadaizi_</span>
-              <span class="reason">鞘翅加速 1 秒 80 米，当场逮捕</span>
-              <span class="date">2026.07.14</span>
-            </div>
-          </div>
-          <div style="margin-top:1rem;text-align:center;opacity:0.2;font-size:0.8rem;letter-spacing:2px;">— 仅展示近期封禁记录 —</div>
+        <div id="storyContainer">
+          <div class="server-status-card" style="text-align:center;padding:3rem;"><i class="fas fa-spinner fa-pulse" style="font-size:2rem;opacity:0.3;"></i><div style="margin-top:1rem;opacity:0.3;font-size:0.9rem;">加载中...</div></div>
         </div>
       </div>
     </div>
@@ -88,11 +65,35 @@
 </div>
 
 <script>
+const API_BASE = 'https://api.jssj.cc.cd';
+
+async function loadStories() {
+  const container = document.getElementById('storyContainer');
+  try {
+    const resp = await fetch(API_BASE + '/api/stories');
+    const data = await resp.json();
+    if (!data.success || !data.stories || data.stories.length === 0) {
+      container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无记录</div></div>';
+      return;
+    }
+    container.innerHTML = data.stories.map(s => `
+      <div class="story-card">
+        <div class="story-title">${s.title}</div>
+        <div class="story-meta">${s.date}</div>
+        <div class="story-content">${s.content}</div>
+      </div>
+    `).join('');
+  } catch {
+    container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
+  }
+}
+
+loadStories();
+
 const sidebar=document.getElementById('sidebar'),st=document.getElementById('sidebarToggle'),sc=document.getElementById('sidebarClose'),tt=document.getElementById('themeToggle'),ti=document.getElementById('themeIcon'),bd=document.body;
 function openSidebar(){sidebar.classList.add('open')}
 function closeSidebar(){sidebar.classList.remove('open')}
-st.addEventListener('click',openSidebar);
-sc.addEventListener('click',closeSidebar);
+st.addEventListener('click',openSidebar);sc.addEventListener('click',closeSidebar);
 document.addEventListener('click',function(e){if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==st&&!st.contains(e.target))closeSidebar()});
 sidebar.addEventListener('click',function(e){e.stopPropagation()});
 var savedTheme=localStorage.getItem('theme');if(savedTheme==='light'){bd.classList.add('light-mode');ti.className='fas fa-sun'}else if(!savedTheme&&!window.matchMedia('(prefers-color-scheme:dark)').matches){bd.classList.add('light-mode');ti.className='fas fa-sun';localStorage.setItem('theme','light')}
