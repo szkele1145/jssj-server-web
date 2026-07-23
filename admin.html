@@ -709,7 +709,16 @@
       let content = document.getElementById('storyContent').value.trim();
       if (!title || !content) { showToast('标题和内容为必填项', 'error'); return; }
       // 单独一行的图床链接转 <img>，其余换行转 <br>
-      content = content.replace(/^\s*(https?:\/\/[^\s]*?\.(?:png|jpg|jpeg|gif|webp|bmp|svg)[^\s]*)\s*$/gim, "<img src='$1'>").replace(/\n/g, '<br>');
+      let lines = content.split('\n');
+      let imgExts = ['png','jpg','jpeg','gif','webp','bmp','svg'];
+      content = lines.map(line => {
+        let t = line.trim();
+        // 检查是否整行只有一个图片链接
+        if (imgExts.some(ext => t.toLowerCase().endsWith('.' + ext) || t.toLowerCase().includes('.' + ext + '?'))) {
+          return "<img src='" + t + "'>";
+        }
+        return line;
+      }).join('\n').replace(/\n/g, '<br>');
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
       try {
         const resp = await fetch(API_BASE + '/api/stories', {
