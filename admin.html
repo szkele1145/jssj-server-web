@@ -715,6 +715,8 @@
         let t = line.trim();
         // 检查是否整行只有一个图片链接
         if (imgExts.some(ext => t.toLowerCase().endsWith('.' + ext) || t.toLowerCase().includes('.' + ext + '?'))) {
+          // img.remit.ee 返回 octet-stream，用 weserv 代理
+          if (t.includes('img.remit.ee')) t = 'https://images.weserv.nl/?url=' + encodeURIComponent(t);
           return "<img src='" + t + "'>";
         }
         return line;
