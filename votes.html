@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>建设世界 · 投票</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link rel="icon" href="favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<script>if(localStorage.getItem('theme')==='light')document.documentElement.classList.add('light-mode')</script>
+<style>
+  .vote-card{background:rgba(16,24,32,.2);border:1px solid rgba(160,175,190,.04);border-radius:16px;padding:1.5rem 1.8rem;margin-bottom:1.2rem;transition:.2s}
+  html.light-mode .vote-card{background:rgba(220,235,250,.12);border-color:rgba(80,120,160,.04)}
+  .vote-card:hover{border-color:rgba(160,175,190,.1)}
+  html.light-mode .vote-card:hover{border-color:rgba(80,120,160,.1)}
+  .vote-title{font-size:1.15rem;font-weight:450;color:#d0e6f0;margin-bottom:0.6rem}
+  html.light-mode .vote-title{color:#1a3a4e}
+  .vote-desc{font-size:0.93rem;color:rgba(200,215,230,.6);line-height:1.6;margin-bottom:1rem}
+  html.light-mode .vote-desc{color:rgba(30,60,80,.6)}
+  .vote-actions{display:flex;gap:0.8rem;flex-wrap:wrap}
+  .vote-btn{flex:1;min-width:120px;padding:0.6rem 1rem;border-radius:10px;font-size:0.95rem;font-family:inherit;cursor:pointer;transition:.2s;text-align:center;letter-spacing:2px;border:1px solid;display:flex;align-items:center;justify-content:center;gap:8px}
+  .vote-btn:disabled{cursor:default;opacity:0.7}
+  .vote-btn.yes{color:#5ad0a0;border-color:rgba(90,208,160,.2);background:rgba(90,208,160,.06)}
+  .vote-btn.yes:hover:not(:disabled){background:rgba(90,208,160,.12);border-color:rgba(90,208,160,.4)}
+  .vote-btn.yes.voted{background:rgba(90,208,160,.15);border-color:#5ad0a0}
+  .vote-btn.no{color:#e06060;border-color:rgba(224,96,96,.2);background:rgba(224,96,96,.06)}
+  .vote-btn.no:hover:not(:disabled){background:rgba(224,96,96,.12);border-color:rgba(224,96,96,.4)}
+  .vote-btn.no.voted{background:rgba(224,96,96,.15);border-color:#e06060}
+  .vote-meta{font-size:0.8rem;color:rgba(160,175,190,.4);letter-spacing:1px;margin-top:0.6rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.3rem}
+  html.light-mode .vote-meta{color:rgba(60,100,130,.4)}
+  .vote-bar{display:flex;height:4px;border-radius:2px;overflow:hidden;margin-top:0.6rem;background:rgba(160,175,190,.06)}
+  .vote-bar .fill-yes{background:#5ad0a0;transition:width .3s;height:100%}
+  .vote-bar .fill-no{background:#e06060;transition:width .3s;height:100%}
+</style>
+</head>
+<body>
+
+<div class="grid-background"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header"><span>📁 目录</span><button class="sidebar-close" id="sidebarClose"><i class="fas fa-times"></i></button></div>
+  <div class="sidebar-menu">
+    <a href="index.html"><i class="fas fa-home"></i> 首页</a>
+    <a href="server.html"><i class="fas fa-server"></i> 服务器</a>
+    <a href="members.html"><i class="fas fa-users"></i> 成员</a>
+    <a href="forum.html"><i class="fas fa-comment-dots"></i> 动态</a>
+    <a href="newcomer.html"><i class="fas fa-book-open"></i> 新人须知</a>
+    <a href="votes.html"><i class="fas fa-poll"></i> 投票</a>
+    <a href="bans.html"><i class="fas fa-gavel"></i> 封挂榜</a>
+    <a href="about.html"><i class="fas fa-info-circle"></i> 关于</a>
+  </div>
+  <div style="margin-top:auto;opacity:.15;font-size:.7rem;padding-top:2rem;letter-spacing:1px;"><i class="fas fa-ellipsis-h"></i> v0.2</div>
+</nav>
+
+<div class="app">
+  <header class="navbar">
+    <div class="navbar-left"><button class="sidebar-toggle" id="sidebarToggle"><i class="fas fa-bars"></i></button><div class="server-name">建设世界</div></div>
+    <div class="navbar-right"><button class="theme-toggle" id="themeToggle"><i class="fas fa-moon" id="themeIcon"></i></button></div>
+  </header>
+
+  <main class="main-content">
+    <div class="page-container">
+      <div style="display:flex;flex-direction:column;flex:1;gap:1.2rem;padding-top:1rem;">
+        <div class="server-header">
+          <h2><i class="fas fa-poll"></i> 投票</h2>
+        </div>
+        <div id="voteContainer">
+          <div class="server-status-card" style="text-align:center;padding:3rem;">
+            <i class="fas fa-spinner fa-pulse" style="font-size:2rem;opacity:0.3;"></i>
+            <div style="margin-top:1rem;opacity:0.3;font-size:0.9rem;">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="footer-copy">© 2077 建设世界. 并不保留所有权利。</div>
+</div>
+
+<script>
+const API_BASE = 'https://api.jssj.cc.cd';
+
+async function loadVotes() {
+  const container = document.getElementById('voteContainer');
+  try {
+    const resp = await fetch(API_BASE + '/api/votes');
+    const data = await resp.json();
+    if (!data.success || !data.votes || data.votes.length === 0) {
+      container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无投票</div></div>';
+      return;
+    }
+    const active = data.votes.filter(v => v.active);
+    const closed = data.votes.filter(v => !v.active);
+    let html = '';
+    for (const v of [...active, ...closed]) {
+      const total = v.yesCount + v.noCount;
+      const yesPct = total > 0 ? (v.yesCount / total * 100).toFixed(0) : 0;
+      const noPct = total > 0 ? (v.noCount / total * 100).toFixed(0) : 0;
+      const voterName = localStorage.getItem('vote_user_' + v.id) || '';
+      const myVote = v.voters && voterName ? v.voters[voterName] : null;
+      html += `<div class="vote-card">
+        <div class="vote-title">${v.title}</div>
+        ${v.description ? `<div class="vote-desc">${v.description}</div>` : ''}
+        ${v.active ? `<div class="vote-actions">
+          <button class="vote-btn yes${myVote === 'yes' ? ' voted' : ''}" onclick="castVote('${v.id}','yes')" ${myVote ? 'disabled' : ''}><i class="fas fa-check"></i> 同意 (${v.yesCount})</button>
+          <button class="vote-btn no${myVote === 'no' ? ' voted' : ''}" onclick="castVote('${v.id}','no')" ${myVote ? 'disabled' : ''}><i class="fas fa-times"></i> 反对 (${v.noCount})</button>
+        </div>` : '<div style="opacity:0.3;font-size:0.85rem;margin-bottom:0.5rem;">投票已关闭</div>'}
+        ${total > 0 ? `<div class="vote-bar"><div class="fill-yes" style="width:${yesPct}%"></div><div class="fill-no" style="width:${noPct}%"></div></div>` : ''}
+        <div class="vote-meta"><span>${v.date}</span><span>${v.active ? '进行中' : '已结束'} · ${total} 票</span></div>
+      </div>`;
+    }
+    container.innerHTML = html;
+  } catch {
+    container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
+  }
+}
+
+async function castVote(id, option) {
+  let voter = localStorage.getItem('vote_user_' + id);
+  if (!voter) {
+    voter = prompt('请输入你的游戏ID以投票：');
+    if (!voter) return;
+    localStorage.setItem('vote_user_' + id, voter);
+  }
+  try {
+    const resp = await fetch(API_BASE + '/api/votes/' + id + '/vote', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ option, voter }),
+    });
+    const data = await resp.json();
+    if (data.success) {
+      loadVotes();
+    } else {
+      alert(data.error || '投票失败');
+    }
+  } catch {
+    alert('网络错误');
+  }
+}
+
+loadVotes();
+
+// Sidebar & theme
+const sidebar=document.getElementById('sidebar'),st=document.getElementById('sidebarToggle'),sc=document.getElementById('sidebarClose'),tt=document.getElementById('themeToggle'),ti=document.getElementById('themeIcon'),bd=document.body;
+function openSidebar(){sidebar.classList.add('open')}
+function closeSidebar(){sidebar.classList.remove('open')}
+st.addEventListener('click',openSidebar);sc.addEventListener('click',closeSidebar);
+document.addEventListener('click',function(e){if(sidebar.classList.contains('open')&&!sidebar.contains(e.target)&&e.target!==st&&!st.contains(e.target))closeSidebar()});
+sidebar.addEventListener('click',function(e){e.stopPropagation()});
+var savedTheme=localStorage.getItem('theme');if(savedTheme==='light'){bd.classList.add('light-mode');ti.className='fas fa-sun'}else if(!savedTheme&&!window.matchMedia('(prefers-color-scheme:dark)').matches){bd.classList.add('light-mode');ti.className='fas fa-sun';localStorage.setItem('theme','light')}
+tt.addEventListener('click',function(){bd.classList.toggle('light-mode');document.documentElement.classList.toggle('light-mode');var isLight=bd.classList.contains('light-mode');localStorage.setItem('theme',isLight?'light':'dark');ti.className=isLight?'fas fa-sun':'fas fa-moon'});
+</script>
+</body>
+</html>
