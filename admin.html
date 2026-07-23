@@ -326,8 +326,16 @@
       <h1>
         ⚙️ 建设世界 · 管理后台
         <span class="badge-online">🌐 在线模式</span>
+        <button onclick="logout()" style="float:right;background:rgba(200,60,60,.15);border:1px solid rgba(200,60,60,.2);color:#e06060;padding:0.3rem 1rem;border-radius:8px;cursor:pointer;font-size:0.8rem;font-family:inherit;">退出登录</button>
       </h1>
-      <div class="subtitle">管理服务器动态帖子 · 发帖 / 删帖</div>
+      <div class="subtitle">管理服务器动态 · 投票 · 删帖</div>
+
+      <div class="card">
+        <h2>📋 所有动态</h2>
+        <div id="postList" class="post-list">
+          <div class="empty-state">加载中...</div>
+        </div>
+      </div>
 
       <div class="card">
         <h2>📝 发布新动态</h2>
@@ -366,10 +374,30 @@
       </div>
 
       <div class="card">
-        <h2>📋 所有动态</h2>
-        <div id="postList" class="post-list">
+        <h2>📋 所有投票</h2>
+        <div id="voteList" class="post-list">
           <div class="empty-state">加载中...</div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>📝 创建新投票</h2>
+        <form id="voteForm">
+          <div class="form-group">
+            <label>投票标题 *</label>
+            <input type="text" id="voteTitle" placeholder="输入投票标题" required>
+          </div>
+          <div class="form-group">
+            <label>投票描述</label>
+            <textarea id="voteDesc" placeholder="描述投票内容" rows="2"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group"></div>
+            <div class="form-group" style="display: flex; align-items: flex-end; justify-content: flex-end;">
+              <button type="submit" class="btn btn-primary">创建投票</button>
+            </div>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -391,8 +419,8 @@
     const authError = document.getElementById('authError');
     const mainContent = document.getElementById('mainContent');
 
-    // 用于存储验证状态（只存是否通过，不存密码）
-    let isVerified = false;
+    // 用于存储密码（仅在 sessionStorage 中，关闭标签页即销毁）
+    let adminPassword = sessionStorage.getItem('admin_pass') || '';
 
     async function tryLogin() {
       const password = authInput.value.trim();
@@ -414,21 +442,21 @@
         const data = await resp.json();
 
         if (data.success) {
-          isVerified = true;
+          adminPassword = password;
+          sessionStorage.setItem('admin_pass', password);
           authOverlay.classList.add('hidden');
           mainContent.style.display = 'block';
           authError.textContent = '';
-          // 只存验证状态，不存密码
-          sessionStorage.setItem('admin_verified', 'true');
           loadPosts();
+          loadVotes();
         } else {
-          authError.textContent = '❌ ' + (data.error || '密码错误，请重试');
+          authError.textContent = '❌ ' + (data.error || '密码错误');
           authInput.value = '';
           authInput.focus();
-          sessionStorage.removeItem('admin_verified');
+          sessionStorage.removeItem('admin_pass');
         }
       } catch (err) {
-        authError.textContent = '❌ 连接服务器失败，请检查网络';
+        authError.textContent = '❌ 连接服务器失败';
         console.error(err);
       } finally {
         authBtn.disabled = false;
@@ -441,15 +469,25 @@
     });
     authBtn.addEventListener('click', tryLogin);
 
-    // 检查 sessionStorage 验证状态（只存状态，不存密码）
-    if (sessionStorage.getItem('admin_verified') === 'true') {
-      isVerified = true;
+    // 检查已有登录
+    if (sessionStorage.getItem('admin_pass')) {
+      adminPassword = sessionStorage.getItem('admin_pass');
       authOverlay.classList.add('hidden');
       mainContent.style.display = 'block';
       loadPosts();
+      loadVotes();
     } else {
       authOverlay.classList.remove('hidden');
       mainContent.style.display = 'none';
+      authInput.focus();
+    }
+
+    function logout() {
+      sessionStorage.removeItem('admin_pass');
+      adminPassword = '';
+      authOverlay.classList.remove('hidden');
+      mainContent.style.display = 'none';
+      authInput.value = '';
       authInput.focus();
     }
 
@@ -470,24 +508,77 @@
     // 获取当前验证状态
     // ============================================================
     function getAuthToken() {
-      // 前端不存密码，只返回验证状态
-      // 发帖/删帖时，后端会校验 Authorization header
-      // 但因为我们不存密码，这里从 sessionStorage 读取验证状态
-      // 实际请求时，需要把密码再传给后端
-      // 更好的方式：登录时后端返回一个 token，前端存 token
-      // 简单起见：每次发帖/删帖时弹窗获取密码
-      return sessionStorage.getItem('admin_verified') === 'true';
+      return adminPassword;
     }
 
     // ============================================================
-    // 获取密码（每次操作时弹窗获取）
+    // 加载投票列表
     // ============================================================
-    function promptPassword() {
-      return new Promise((resolve) => {
-        const pwd = prompt('请输入管理员密码以继续操作：');
-        resolve(pwd);
-      });
+    async function loadVotes() {
+      const container = document.getElementById('voteList');
+      try {
+        const resp = await fetch(API_BASE + '/api/votes');
+        const data = await resp.json();
+        if (!data.success || !data.votes || data.votes.length === 0) {
+          container.innerHTML = '<div class="empty-state">📭 暂无投票</div>';
+          return;
+        }
+        container.innerHTML = data.votes.map(v => `
+          <div class="post-item">
+            <div class="info">
+              <span class="title">${v.title}</span>
+              <span class="meta">同意 ${v.yesCount} · 反对 ${v.noCount} · ${v.date}</span>
+            </div>
+            <div class="actions">
+              <button class="btn btn-danger" onclick="deleteVote('${v.id}')">删除</button>
+            </div>
+          </div>
+        `).join('');
+      } catch {
+        container.innerHTML = '<div class="empty-state">❌ 加载失败</div>';
+      }
     }
+
+    // ============================================================
+    // 创建投票
+    // ============================================================
+    document.getElementById('voteForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('voteTitle').value.trim();
+      const description = document.getElementById('voteDesc').value.trim();
+      if (!title) { showToast('标题为必填项', 'error'); return; }
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      try {
+        const resp = await fetch(API_BASE + '/api/votes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
+          body: JSON.stringify({ title, description }),
+        });
+        const data = await resp.json();
+        if (data.success) {
+          showToast('✅ 投票创建成功');
+          document.getElementById('voteForm').reset();
+          loadVotes();
+        } else {
+          showToast('❌ ' + (data.error || '创建失败'), 'error');
+          if (resp.status === 401) { sessionStorage.removeItem('admin_pass'); adminPassword = ''; logout(); }
+        }
+      } catch (err) { showToast('创建失败: ' + err.message, 'error'); }
+    });
+
+    window.deleteVote = async function(id) {
+      if (!confirm('确定要删除这个投票吗？')) return;
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      try {
+        const resp = await fetch(API_BASE + '/api/votes/' + id, {
+          method: 'DELETE',
+          headers: { 'Authorization': 'Bearer ' + adminPassword },
+        });
+        const data = await resp.json();
+        if (data.success) { showToast('✅ 投票已删除'); loadVotes(); }
+        else { showToast('❌ ' + (data.error || '删除失败'), 'error'); if (resp.status === 401) logout(); }
+      } catch (err) { showToast('删除失败: ' + err.message, 'error'); }
+    };
 
     // ============================================================
     // 加载帖子列表
@@ -538,19 +629,14 @@
         return;
       }
 
-      // 每次发帖需要重新输入密码（安全）
-      const password = await promptPassword();
-      if (!password) {
-        showToast('已取消操作', 'error');
-        return;
-      }
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
 
       try {
         const resp = await fetch(API_BASE + '/api/posts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + password,
+            'Authorization': 'Bearer ' + adminPassword,
           },
           body: JSON.stringify({ title, author, excerpt, content, pinned }),
         });
@@ -562,12 +648,7 @@
           loadPosts();
         } else {
           showToast('❌ ' + (data.error || '发布失败'), 'error');
-          if (data.error === 'Unauthorized' || data.error.includes('密钥')) {
-            sessionStorage.removeItem('admin_verified');
-            // 重新弹出登录框
-            authOverlay.classList.remove('hidden');
-            mainContent.style.display = 'none';
-          }
+          if (resp.status === 401) logout();
         }
       } catch (err) {
         showToast('发布失败: ' + err.message, 'error');
@@ -579,18 +660,13 @@
     // ============================================================
     window.deletePost = async function(postId) {
       if (!confirm('确定要删除这篇帖子吗？')) return;
-
-      const password = await promptPassword();
-      if (!password) {
-        showToast('已取消操作', 'error');
-        return;
-      }
+      if (!adminPassword) { showToast('请先登录', 'error'); return; }
 
       try {
         const resp = await fetch(API_BASE + '/api/posts/' + postId, {
           method: 'DELETE',
           headers: {
-            'Authorization': 'Bearer ' + password,
+            'Authorization': 'Bearer ' + adminPassword,
           },
         });
 
@@ -600,11 +676,7 @@
           loadPosts();
         } else {
           showToast('❌ ' + (data.error || '删除失败'), 'error');
-          if (data.error === 'Unauthorized' || data.error.includes('密钥')) {
-            sessionStorage.removeItem('admin_verified');
-            authOverlay.classList.remove('hidden');
-            mainContent.style.display = 'none';
-          }
+          if (resp.status === 401) logout();
         }
       } catch (err) {
         showToast('删除失败: ' + err.message, 'error');
