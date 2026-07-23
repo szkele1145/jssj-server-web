@@ -370,7 +370,7 @@
           <h2>📝 添加新记录</h2>
           <form id="storyForm">
             <div class="form-group"><label>标题 *</label><input type="text" id="storyTitle" placeholder="事件标题" required></div>
-            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="描述事件经过" rows="3" required></textarea></div>
+            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="支持 HTML 标签，插入图片用 &lt;img src='图床链接'&gt;" rows="4" required></textarea></div>
             <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">添加记录</button></div></div>
           </form>
         </div>
@@ -693,7 +693,7 @@
           <div class="post-item">
             <div class="info">
               <span class="title">${s.title}</span>
-              <span class="meta">${s.date}</span>
+              <span class="meta">${s.date} · ${s.content.replace(/<[^>]+>/g,'').slice(0,50)}${s.content.length > 50 ? '...' : ''}</span>
             </div>
             <div class="actions">
               <button class="btn btn-danger" onclick="deleteStory('${s.id}')">删除</button>
