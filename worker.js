@@ -503,13 +503,25 @@ export default {
           });
         }
         const body = await request.json();
-        const { title, content } = body;
-        if (!title || !content) {
+        const { title, content: rawContent } = body;
+        if (!title || !rawContent) {
           return new Response(JSON.stringify({ success: false, error: '标题和内容为必填项' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json', ...corsHeaders },
           });
         }
+
+        // 内容处理：图片链接转 <img>，换行转 <br>
+        const imgExts = ['png','jpg','jpeg','gif','webp','bmp','svg'];
+        let content = rawContent.split('\n').map(line => {
+          let t = line.trim();
+          if (t.startsWith('http') && imgExts.some(ext => t.toLowerCase().endsWith('.' + ext) || t.toLowerCase().includes('.' + ext + '?'))) {
+            if (t.includes('img.remit.ee')) t = 'https://images.weserv.nl/?url=' + encodeURIComponent(t);
+            return "<img src='" + t + "'>";
+          }
+          return line;
+        }).join('\n').replace(/\n/g, '<br>');
+
         let stories = await env.jsapi.get('stories', 'json');
         if (!stories) stories = [];
         const newStory = {

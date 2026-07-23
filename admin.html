@@ -370,7 +370,7 @@
           <h2>📝 添加新记录</h2>
           <form id="storyForm">
             <div class="form-group"><label>标题 *</label><input type="text" id="storyTitle" placeholder="事件标题" required></div>
-            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="支持 HTML 标签，插入图片用 &lt;img src='图床链接'&gt;" rows="4" required></textarea></div>
+            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="每条链接单独一行，自动转图片" rows="4" required></textarea></div>
             <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">添加记录</button></div></div>
           </form>
         </div>
@@ -708,19 +708,6 @@
       const title = document.getElementById('storyTitle').value.trim();
       let content = document.getElementById('storyContent').value.trim();
       if (!title || !content) { showToast('标题和内容为必填项', 'error'); return; }
-      // 单独一行的图床链接转 <img>，其余换行转 <br>
-      let lines = content.split('\n');
-      let imgExts = ['png','jpg','jpeg','gif','webp','bmp','svg'];
-      content = lines.map(line => {
-        let t = line.trim();
-        // 检查是否整行只有一个图片链接（整行只有链接，没有其他文字）
-        if (t.startsWith('http') && imgExts.some(ext => t.toLowerCase().endsWith('.' + ext) || t.toLowerCase().includes('.' + ext + '?'))) {
-          // img.remit.ee 返回 octet-stream，用 weserv 代理
-          if (t.includes('img.remit.ee')) t = 'https://images.weserv.nl/?url=' + encodeURIComponent(t);
-          return "<img src='" + t + "'>";
-        }
-        return line;
-      }).join('\n').replace(/\n/g, '<br>');
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
       try {
         const resp = await fetch(API_BASE + '/api/stories', {
