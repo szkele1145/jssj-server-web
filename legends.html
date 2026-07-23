@@ -78,13 +78,21 @@ async function loadStories() {
       container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无记录</div></div>';
       return;
     }
-    container.innerHTML = data.stories.map(s => `
+    container.innerHTML = data.stories.map(s => {
+      let content = s.content;
+      // img.remit.ee 走代理显示
+      if (content.includes('img.remit.ee')) {
+        content = content.replace(/https?:\/\/img\.remit\.ee[^\s<>"]+/g, function(u) {
+          return 'https://images.weserv.nl/?url=' + encodeURIComponent(u);
+        });
+      }
+      return `
       <div class="story-card">
         <div class="story-title">${s.title}</div>
         <div class="story-meta">${s.date}</div>
-        <div class="story-content">${s.content}</div>
-      </div>
-    `).join('');
+        <div class="story-content">${content}</div>
+      </div>`;
+    }).join('');
   } catch {
     container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
   }
