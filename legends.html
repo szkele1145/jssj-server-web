@@ -95,7 +95,7 @@ function renderStories(list) {
         return 'https://api.jssj.cc.cd/api/img?url=' + encodeURIComponent(u);
       });
     }
-    content = content.replace(/(<img[^>]*>(?:\s*<img[^>]*>)*)/g, '<div class="story-gallery">$1</div>');
+    if (!content.includes('story-gallery')) content = content.replace(/(<img[^>]*>(?:\s*(?:<br\s*\/?>)?\s*<img[^>]*>)*)/gi, '<div class="story-gallery">$1</div>');
     return '<div class="story-card"><div class="story-title">' + s.title + '</div><div class="story-meta">' + s.date + '</div><div class="story-content">' + content + '</div></div>';
   }).join('');
 }
