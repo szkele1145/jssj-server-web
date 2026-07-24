@@ -119,7 +119,7 @@ async function loadStories() {
       container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无记录</div></div>';
       return;
     }
-    allStories = data.stories;
+    allStories = data.stories.sort((a, b) => new Date(b.date) - new Date(a.date));
     renderStories(allStories);
   } catch {
     container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
