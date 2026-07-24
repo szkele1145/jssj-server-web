@@ -79,10 +79,9 @@ async function loadStories() {
     }
     container.innerHTML = data.stories.map(s => {
       let content = s.content;
-      // img.remit.ee 走代理显示
       if (content.includes('img.remit.ee')) {
         content = content.replace(/https?:\/\/img\.remit\.ee[^\s<>"]+/g, function(u) {
-          return '/api/img?url=' + encodeURIComponent(u);
+          return 'https://api.jssj.cc.cd/api/img?url=' + encodeURIComponent(u);
         });
       }
       return `
