@@ -370,7 +370,8 @@
           <h2>📝 添加新记录</h2>
           <form id="storyForm">
             <div class="form-group"><label>标题 *</label><input type="text" id="storyTitle" placeholder="事件标题" required></div>
-            <div class="form-group"><label>详细内容 *</label><textarea id="storyContent" placeholder="每条链接单独一行，自动转图片" rows="4" required></textarea></div>
+            <div class="form-group"><label>事件描述 *</label><textarea id="storyText" placeholder="描述事件经过" rows="3" required></textarea></div>
+            <div class="form-group"><label>图片链接（可选）</label><textarea id="storyImageUrls" placeholder="图片直链，每行一张（支持 img.remit.ee 图床）" rows="3"></textarea></div>
             <div class="form-row"><div class="form-group"></div><div class="form-group" style="display:flex;align-items:flex-end;justify-content:flex-end;"><button type="submit" class="btn btn-primary">添加记录</button></div></div>
           </form>
         </div>
@@ -763,14 +764,16 @@
     document.getElementById('storyForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const title = document.getElementById('storyTitle').value.trim();
-      let content = document.getElementById('storyContent').value.trim();
-      if (!title || !content) { showToast('标题和内容为必填项', 'error'); return; }
+      const text = document.getElementById('storyText').value.trim();
+      const imagesRaw = document.getElementById('storyImageUrls').value.trim();
+      if (!title || !text) { showToast('标题和事件描述为必填项', 'error'); return; }
       if (!adminPassword) { showToast('请先登录', 'error'); return; }
+      const images = imagesRaw ? imagesRaw.split('\n').map(s => s.trim()).filter(s => s.startsWith('http')) : [];
       try {
         const resp = await fetch(API_BASE + '/api/stories', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminPassword },
-          body: JSON.stringify({ title, content }),
+          body: JSON.stringify({ title, text, images }),
         });
         const data = await resp.json();
         if (data.success) {
