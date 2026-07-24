@@ -19,6 +19,14 @@
   html.light-mode .story-meta{color:rgba(60,100,130,.4)}
   .story-content{font-size:.95rem;color:rgba(200,215,230,.6);line-height:1.8}
   html.light-mode .story-content{color:rgba(30,60,80,.6)}
+  .search-bar{display:flex;align-items:center;gap:.6rem;background:rgba(16,24,32,.2);border:1px solid rgba(160,175,190,.06);border-radius:12px;padding:.5rem 1rem;margin-bottom:.8rem;transition:.2s}
+  .search-bar:focus-within{border-color:rgba(90,176,224,.3);background:rgba(16,24,32,.3)}
+  html.light-mode .search-bar{background:rgba(220,235,250,.12);border-color:rgba(80,120,160,.06)}
+  html.light-mode .search-bar:focus-within{border-color:rgba(30,120,180,.2);background:rgba(220,235,250,.2)}
+  .search-bar i{color:rgba(160,175,190,.25);font-size:.9rem}
+  .search-bar input{flex:1;background:0 0;border:none;color:#eef2f5;font-size:.95rem;font-family:inherit;outline:none;letter-spacing:.5px}
+  html.light-mode .search-bar input{color:#1a212a}
+  .search-bar input::placeholder{color:rgba(160,175,190,.25)}
   .story-content img{max-width:100%;height:auto;border-radius:10px;margin:0.6rem 0;display:block}
   .story-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.8rem;margin:.8rem 0}
   .story-gallery img{width:100%;height:220px;object-fit:cover;border-radius:10px;margin:0}
@@ -59,6 +67,7 @@
         <div class="server-header">
           <h2><i class="fas fa-crown"></i> 神人榜</h2>
         </div>
+        <div class="search-bar"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="搜索标题或事件..." oninput="filterStories()"></div>
         <div id="storyContainer">
           <div class="server-status-card" style="text-align:center;padding:3rem;"><i class="fas fa-spinner fa-pulse" style="font-size:2rem;opacity:0.3;"></i><div style="margin-top:1rem;opacity:0.3;font-size:0.9rem;">加载中...</div></div>
         </div>
@@ -71,6 +80,34 @@
 
 <script>
 const API_BASE = 'https://api.jssj.cc.cd';
+let allStories = [];
+
+function renderStories(list) {
+  const container = document.getElementById('storyContainer');
+  if (!list || list.length === 0) {
+    container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">' + (allStories.length > 0 ? '无匹配结果' : '暂无记录') + '</div></div>';
+    return;
+  }
+  container.innerHTML = list.map(s => {
+    let content = s.content;
+    if (content.includes('img.remit.ee')) {
+      content = content.replace(/https?:\/\/img\.remit\.ee[^\s<>"]+/g, function(u) {
+        return 'https://api.jssj.cc.cd/api/img?url=' + encodeURIComponent(u);
+      });
+    }
+    return '<div class="story-card"><div class="story-title">' + s.title + '</div><div class="story-meta">' + s.date + '</div><div class="story-content">' + content + '</div></div>';
+  }).join('');
+}
+
+function filterStories() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!q) { renderStories(allStories); return; }
+  renderStories(allStories.filter(s => {
+    const inTitle = s.title.toLowerCase().includes(q);
+    const inText = (s.text || s.content || '').toLowerCase().includes(q);
+    return inTitle || inText;
+  }));
+}
 
 async function loadStories() {
   const container = document.getElementById('storyContainer');
@@ -81,20 +118,8 @@ async function loadStories() {
       container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">暂无记录</div></div>';
       return;
     }
-    container.innerHTML = data.stories.map(s => {
-      let content = s.content;
-      if (content.includes('img.remit.ee')) {
-        content = content.replace(/https?:\/\/img\.remit\.ee[^\s<>"]+/g, function(u) {
-          return 'https://api.jssj.cc.cd/api/img?url=' + encodeURIComponent(u);
-        });
-      }
-      return `
-      <div class="story-card">
-        <div class="story-title">${s.title}</div>
-        <div class="story-meta">${s.date}</div>
-        <div class="story-content">${content}</div>
-      </div>`;
-    }).join('');
+    allStories = data.stories;
+    renderStories(allStories);
   } catch {
     container.innerHTML = '<div class="server-status-card" style="text-align:center;padding:3rem;"><div style="opacity:0.3;">加载失败</div></div>';
   }
